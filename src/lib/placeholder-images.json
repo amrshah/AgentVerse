@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "agent-1",
+      "description": "Avatar for a research agent",
+      "imageUrl": "https://images.unsplash.com/photo-1737644467636-6b0053476bb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyb2JvdCUyMGZhY2V8ZW58MHx8fHwxNzY0MjcwNTIwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot face"
+    },
+    {
+      "id": "agent-2",
+      "description": "Avatar for a writing agent",
+      "imageUrl": "https://images.unsplash.com/photo-1759259810254-28ce11689d56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhYnN0cmFjdCUyMHN3aXJsc3xlbnwwfHx8fDE3NjQyODU2NTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract swirls"
+    },
+    {
+      "id": "agent-3",
+      "description": "Avatar for a coding agent",
+      "imageUrl": "https://images.unsplash.com/photo-1697952431907-8542919a16b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzY0MTg3NzIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "circuit board"
+    },
+    {
+      "id": "agent-4",
+      "description": "Avatar for a manager agent",
+      "imageUrl": "https://images.unsplash.com/photo-1486551937199-baf066858de7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxnZW9tZXRyaWMlMjBzaGFwZXN8ZW58MHx8fHwxNzY0MjI5OTM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "geometric shapes"
+    }
+  ]
 }
