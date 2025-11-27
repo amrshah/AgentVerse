@@ -132,7 +132,7 @@ export default function CreateAgentDialog({
     const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
     
     const newAgent: Agent = {
-      id: `agent-${Date.now()}`,
+      id: `agent-${Date.now()}-${Math.random()}`,
       ...values,
       constraints: values.constraints || "",
       tools: selectedTools,
