@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -53,59 +54,48 @@ export default function Dashboard() {
     if (!over) return;
     
     const activeContainerKey = findContainer(active.id as string);
-    const overContainerKey = findContainer(over.id as string);
+    // This is the tricky part, `over.id` can be a container or an agent
+    let overContainerKey = findContainer(over.id as string);
+    if (!overContainerKey) {
+        // It's not a known container, so it must be an agent, find its container
+        for (const key in containers) {
+            if (containers[key].agents.some(a => a.id === over.id)) {
+                overContainerKey = key;
+                break;
+            }
+        }
+    }
     
     if (!activeContainerKey || !overContainerKey) return;
 
-    if (activeContainerKey === overContainerKey) {
-        // Handle reordering within the same container
-        setContainers(prev => {
-            const container = prev[activeContainerKey];
-            const oldIndex = container.agents.findIndex(a => a.id === active.id);
-            const newIndex = container.agents.findIndex(a => a.id === over.id)
-            if (oldIndex !== -1 && newIndex !== -1) {
-                const newAgents = arrayMove(container.agents, oldIndex, newIndex);
-                return {
-                    ...prev,
-                    [activeContainerKey]: {
-                        ...container,
-                        agents: newAgents
-                    }
-                }
-            }
-            return prev;
-        })
+    setContainers(prev => {
+        const newContainers = {...prev};
+        const activeContainer = newContainers[activeContainerKey];
+        const overContainer = newContainers[overContainerKey];
+        const activeIndex = activeContainer.agents.findIndex(a => a.id === active.id);
+        const activeAgent = activeContainer.agents[activeIndex];
 
-    } else {
-        // Handle moving between containers
-        setContainers(prev => {
-            const activeContainer = prev[activeContainerKey];
-            const overContainer = prev[overContainerKey];
-            const activeIndex = activeContainer.agents.findIndex(a => a.id === active.id);
+        if (activeContainerKey === overContainerKey) {
+            // Reordering within the same container
+            const overIndex = overContainer.agents.findIndex(a => a.id === over.id);
+            if (activeIndex !== overIndex) {
+              activeContainer.agents = arrayMove(activeContainer.agents, activeIndex, overIndex);
+            }
+        } else {
+            // Moving between containers
+            // Remove from active container
+            activeContainer.agents.splice(activeIndex, 1);
+
+            // Add to over container
             let overIndex = overContainer.agents.findIndex(a => a.id === over.id);
-            
             if (overIndex === -1) {
-                overIndex = overContainer.agents.length;
+              // If dropping on the container itself (not on an agent), add to the end
+              overIndex = overContainer.agents.length;
             }
-
-            const newActiveAgents = [...activeContainer.agents];
-            const [movedAgent] = newActiveAgents.splice(activeIndex, 1);
-            const newOverAgents = [...overContainer.agents];
-            newOverAgents.splice(overIndex, 0, movedAgent);
-            
-            return {
-                ...prev,
-                [activeContainerKey]: {
-                    ...activeContainer,
-                    agents: newActiveAgents
-                },
-                [overContainerKey]: {
-                    ...overContainer,
-                    agents: newOverAgents
-                }
-            }
-        });
-    }
+            overContainer.agents.splice(overIndex, 0, activeAgent);
+        }
+        return newContainers;
+    });
   };
 
   const handleAgentCreate = (newAgent: Agent) => {
@@ -129,13 +119,11 @@ export default function Dashboard() {
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={allAgents.map(a => a.id)}>
-              <div className="flex flex-col md:flex-row gap-8 h-full">
-                  {Object.keys(containers).map(key => (
-                      <TeamColumn key={key} id={key} title={containers[key].title} agents={containers[key].agents} />
-                  ))}
-              </div>
-          </SortableContext>
+          <div className="flex flex-col md:flex-row gap-8 h-full">
+              {Object.keys(containers).map(key => (
+                  <TeamColumn key={key} id={key} title={containers[key].title} agents={containers[key].agents} />
+              ))}
+          </div>
         </DndContext>
         <div className="flex justify-center gap-4 pt-4">
             <RunOrchestrationButton teamAgents={containers.team1.agents} teamName={containers.team1.title} />

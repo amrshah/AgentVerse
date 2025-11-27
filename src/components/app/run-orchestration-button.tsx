@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
+import OrchestrationPlanDialog from "./orchestration-plan-dialog";
 
 type RunOrchestrationButtonProps = {
   teamAgents: Agent[];
@@ -12,10 +14,10 @@ type RunOrchestrationButtonProps = {
 };
 
 export function RunOrchestrationButton({ teamAgents, teamName }: RunOrchestrationButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleRun = () => {
+  const handleRunClick = () => {
     if (teamAgents.length === 0) {
       toast({
         variant: "destructive",
@@ -24,31 +26,21 @@ export function RunOrchestrationButton({ teamAgents, teamName }: RunOrchestratio
       });
       return;
     }
-
-    setIsLoading(true);
-    toast({
-      title: "Orchestration Started",
-      description: `Running team "${teamName}" with ${teamAgents.length} agent(s).`,
-    });
-
-    // Simulate orchestration process
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Orchestration Complete",
-        description: `Team "${teamName}" has finished its tasks.`,
-      });
-    }, 3000 + Math.random() * 2000);
+    setIsDialogOpen(true);
   };
 
   return (
-    <Button onClick={handleRun} disabled={isLoading}>
-      {isLoading ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
+    <>
+      <Button onClick={handleRunClick} disabled={teamAgents.length === 0}>
         <Play className="mr-2 h-4 w-4" />
-      )}
-      Run Orchestration
-    </Button>
+        Run Orchestration for {teamName}
+      </Button>
+      <OrchestrationPlanDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        teamAgents={teamAgents}
+        teamName={teamName}
+      />
+    </>
   );
 }
