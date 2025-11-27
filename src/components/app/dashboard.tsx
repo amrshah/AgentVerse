@@ -55,51 +55,67 @@ export default function Dashboard() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
+  
     if (!over) return;
-    
-    const activeContainerKey = findContainer(active.id as string);
-    // This is the tricky part, `over.id` can be a container or an agent
-    let overContainerKey = findContainer(over.id as string);
+  
+    const activeId = active.id as string;
+    const overId = over.id as string;
+  
+    const activeContainerKey = findContainer(activeId);
+    let overContainerKey = findContainer(overId);
+  
+    if (!activeContainerKey) return;
+  
+    // If overId is a container, we already have overContainerKey.
+    // If overId is an agent, find its container.
     if (!overContainerKey) {
-        // It's not a known container, so it must be an agent, find its container
-        for (const key in containers) {
-            if (containers[key].agents.some(a => a.id === over.id)) {
-                overContainerKey = key;
-                break;
-            }
+      for (const key in containers) {
+        if (containers[key].agents.some(a => a.id === overId)) {
+          overContainerKey = key;
+          break;
         }
+      }
     }
-    
-    if (!activeContainerKey || !overContainerKey) return;
-
+  
+    if (!overContainerKey) return;
+  
     setContainers(prev => {
-        const newContainers = {...prev};
-        const activeContainer = newContainers[activeContainerKey];
-        const overContainer = newContainers[overContainerKey];
-        const activeIndex = activeContainer.agents.findIndex(a => a.id === active.id);
-        const activeAgent = activeContainer.agents[activeIndex];
-
-        if (activeContainerKey === overContainerKey) {
-            // Reordering within the same container
-            const overIndex = overContainer.agents.findIndex(a => a.id === over.id);
-            if (activeIndex !== overIndex) {
-              activeContainer.agents = arrayMove(activeContainer.agents, activeIndex, overIndex);
-            }
-        } else {
-            // Moving between containers
-            // Remove from active container
-            activeContainer.agents.splice(activeIndex, 1);
-
-            // Add to over container
-            let overIndex = overContainer.agents.findIndex(a => a.id === over.id);
-            if (overIndex === -1) {
-              // If dropping on the container itself (not on an agent), add to the end
-              overIndex = overContainer.agents.length;
-            }
-            overContainer.agents.splice(overIndex, 0, activeAgent);
+      const newContainers = { ...prev };
+      const activeContainer = newContainers[activeContainerKey];
+      const overContainer = newContainers[overContainerKey];
+  
+      const activeIndex = activeContainer.agents.findIndex(a => a.id === activeId);
+      const activeAgent = activeContainer.agents[activeIndex];
+  
+      if (!activeAgent) return prev;
+  
+      if (activeContainerKey === overContainerKey) {
+        // Reordering within the same container
+        const overAgent = overContainer.agents.find(a => a.id === overId);
+        if (overAgent) {
+          const overIndex = overContainer.agents.findIndex(a => a.id === overId);
+          if (activeIndex !== overIndex) {
+            newContainers[activeContainerKey].agents = arrayMove(activeContainer.agents, activeIndex, overIndex);
+          }
         }
-        return newContainers;
+      } else {
+        // Moving between containers
+        // Remove from active container
+        activeContainer.agents.splice(activeIndex, 1);
+  
+        // Add to over container
+        const overAgent = overContainer.agents.find(a => a.id === overId);
+        let overIndex;
+        if (overAgent) {
+          // Dropped on an agent
+          overIndex = overContainer.agents.findIndex(a => a.id === overId);
+        } else {
+          // Dropped on the container itself
+          overIndex = overContainer.agents.length;
+        }
+        overContainer.agents.splice(overIndex, 0, activeAgent);
+      }
+      return newContainers;
     });
   };
 
@@ -130,7 +146,7 @@ export default function Dashboard() {
     <div className="flex flex-col h-screen">
       <Header availableTools={AVAILABLE_TOOLS} onAgentCreate={handleAgentCreate} />
       <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-8">
-        {isClient && (
+        {isClient ? (
             <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -150,6 +166,17 @@ export default function Dashboard() {
                 </div>
             </div>
             </DndContext>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <TeamColumn key="pool" id="pool" title={containers.pool.title} agents={containers.pool.agents} />
+            {teamKeys.map(key => (
+                <TeamColumn key={key} id={key} title={containers[key].title} agents={containers[key].agents} />
+            ))}
+            <div className="flex flex-col w-full bg-secondary/30 rounded-lg p-4 h-full border-2 border-dashed border-muted-foreground/50 justify-center items-center min-h-[400px]">
+                <PlusCircle className="h-12 w-12 text-muted-foreground/80" />
+                <p className="mt-4 text-lg font-semibold text-muted-foreground/80">Add New Team</p>
+            </div>
+          </div>
         )}
         <div className="flex flex-wrap justify-center gap-4 pt-4">
             {teamKeys.map(key => (
