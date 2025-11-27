@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { Bot, Loader2, Sparkles, Wand2, XOctagon } from "lucide-react";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 
@@ -36,11 +36,15 @@ export default function OrchestrationPlanDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
   const [task, setTask] = useState(initialTask);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
 
   const handleConfirmRun = async () => {
     setIsLoading(true);
     setResult("");
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     toast({
       title: "Orchestration Started",
       description: `Running team "${teamName}" with ${teamAgents.length} agent(s).`,
@@ -49,24 +53,48 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       const response = await runOrchestration({ teamName, agents: agentsForFlow, task });
-      setResult(response.result);
-      toast({
-        title: "Orchestration Complete",
-        description: `Team "${teamName}" has finished its tasks.`,
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Orchestration Failed",
-        description: "Could not run the orchestration.",
-      });
+
+      if (!signal.aborted) {
+        setResult(response.result);
+        toast({
+          title: "Orchestration Complete",
+          description: `Team "${teamName}" has finished its tasks.`,
+        });
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError' || signal.aborted) {
+        toast({
+          variant: "destructive",
+          title: "Orchestration Stopped",
+          description: "The orchestration was cancelled by the user.",
+        });
+      } else {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Orchestration Failed",
+          description: "Could not run the orchestration.",
+        });
+      }
     } finally {
+      if (!signal.aborted) {
+        setIsLoading(false);
+      }
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleStopRun = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
+    if (isLoading) {
+      handleStopRun();
+    }
     onOpenChange(false);
     // Delay resetting state to allow for exit animation
     setTimeout(() => {
@@ -107,7 +135,7 @@ export default function OrchestrationPlanDialog({
                 ))}
                 </div>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 min-h-0">
                 <div className="space-y-2">
                     <label htmlFor="task" className="font-semibold text-lg">Overall Task</label>
                     <Textarea 
@@ -116,37 +144,49 @@ export default function OrchestrationPlanDialog({
                         onChange={(e) => setTask(e.target.value)}
                         placeholder="e.g., Create a marketing campaign for a new product"
                         className="min-h-[100px]"
+                        disabled={isLoading}
                     />
                 </div>
-                 <Button onClick={handleConfirmRun} disabled={isLoading || !task}>
-                    {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    )}
-                    Run Orchestration
-                </Button>
-                <div className="flex-grow bg-muted/50 rounded-lg p-4 overflow-y-auto min-h-[200px] flex flex-col">
-                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 flex-shrink-0"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
+                <div className="flex gap-2">
+                    <Button onClick={handleConfirmRun} disabled={isLoading || !task} className="flex-grow">
+                        {isLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                        <Wand2 className="mr-2 h-4 w-4" />
+                        )}
+                        Run Orchestration
+                    </Button>
                     {isLoading && (
-                        <div className="flex items-center justify-center h-full">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
+                        <Button onClick={handleStopRun} variant="destructive">
+                            <XOctagon className="mr-2 h-4 w-4" />
+                            Stop
+                        </Button>
                     )}
-                    {result && !isLoading && (
-                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto flex-grow" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
-                    )}
-                    {!result && !isLoading && (
-                        <div className="flex items-center justify-center h-full">
-                            <p className="text-muted-foreground">The AI-generated result will appear here.</p>
-                        </div>
-                    )}
+                </div>
+
+                <div className="flex-grow bg-muted/50 rounded-lg p-4 flex flex-col min-h-[200px] overflow-hidden">
+                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 flex-shrink-0"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
+                    <div className="flex-grow overflow-y-auto">
+                        {isLoading && !result && (
+                            <div className="flex items-center justify-center h-full">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        )}
+                        {result && (
+                            <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+                        )}
+                        {!result && !isLoading && (
+                            <div className="flex items-center justify-center h-full">
+                                <p className="text-muted-foreground">The AI-generated result will appear here.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+          <Button variant="outline" onClick={handleClose}>
             Close
           </Button>
         </DialogFooter>
