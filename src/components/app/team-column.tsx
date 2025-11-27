@@ -15,7 +15,7 @@ export function TeamColumn({ id, title, agents }: TeamColumnProps) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
-    <div className="flex flex-col w-full md:w-1/3 bg-secondary/50 rounded-lg p-4 h-full">
+    <div className="flex flex-col w-full bg-secondary/50 rounded-lg p-4 h-full min-h-[500px]">
       <h2 className="text-xl font-semibold mb-4 text-center text-foreground">{title}</h2>
       <div
         ref={setNodeRef}

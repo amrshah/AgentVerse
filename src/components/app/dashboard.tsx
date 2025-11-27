@@ -15,7 +15,7 @@ import {
   arrayMove,
   SortableContext,
 } from "@dnd-kit/sortable";
-
+import { PlusCircle } from "lucide-react";
 import type { Agent } from "@/lib/types";
 import { INITIAL_AGENTS, AVAILABLE_TOOLS } from "@/lib/data";
 import { TeamColumn } from "./team-column";
@@ -108,7 +108,18 @@ export default function Dashboard() {
     }));
   };
 
-  const allAgents = Object.values(containers).flatMap(c => c.agents);
+  const handleAddTeam = () => {
+    const newTeamName = prompt("Enter a name for the new team:");
+    if (newTeamName) {
+      const newTeamId = `team-${Date.now()}`;
+      setContainers(prev => ({
+        ...prev,
+        [newTeamId]: { title: newTeamName, agents: [] }
+      }));
+    }
+  }
+
+  const teamKeys = Object.keys(containers).filter(key => key !== 'pool');
 
   return (
     <div className="flex flex-col h-screen">
@@ -119,15 +130,24 @@ export default function Dashboard() {
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-col md:flex-row gap-8 h-full">
-              {Object.keys(containers).map(key => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <TeamColumn key="pool" id="pool" title={containers.pool.title} agents={containers.pool.agents} />
+              {teamKeys.map(key => (
                   <TeamColumn key={key} id={key} title={containers[key].title} agents={containers[key].agents} />
               ))}
+              <div 
+                onClick={handleAddTeam}
+                className="flex flex-col w-full bg-secondary/30 rounded-lg p-4 h-full border-2 border-dashed border-muted-foreground/50 hover:border-muted-foreground/80 hover:bg-secondary/50 cursor-pointer transition-colors justify-center items-center min-h-[400px]"
+              >
+                  <PlusCircle className="h-12 w-12 text-muted-foreground/80" />
+                  <p className="mt-4 text-lg font-semibold text-muted-foreground/80">Add New Team</p>
+              </div>
           </div>
         </DndContext>
-        <div className="flex justify-center gap-4 pt-4">
-            <RunOrchestrationButton teamAgents={containers.team1.agents} teamName={containers.team1.title} />
-            <RunOrchestrationButton teamAgents={containers.team2.agents} teamName={containers.team2.title} />
+        <div className="flex flex-wrap justify-center gap-4 pt-4">
+            {teamKeys.map(key => (
+                <RunOrchestrationButton key={`run-${key}`} teamAgents={containers[key].agents} teamName={containers[key].title} />
+            ))}
         </div>
       </main>
     </div>
