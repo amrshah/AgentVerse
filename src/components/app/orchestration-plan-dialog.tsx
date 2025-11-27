@@ -125,15 +125,15 @@ export default function OrchestrationPlanDialog({
                     )}
                     Run Orchestration
                 </Button>
-                <div className="flex-grow bg-muted/50 rounded-lg p-4 overflow-y-auto min-h-[200px]">
-                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
+                <div className="flex-grow bg-muted/50 rounded-lg p-4 overflow-y-auto min-h-[200px] flex flex-col">
+                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 flex-shrink-0"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
                     {isLoading && (
                         <div className="flex items-center justify-center h-full">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     )}
                     {result && !isLoading && (
-                        <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
 
                     )}
                     {!result && !isLoading && (
