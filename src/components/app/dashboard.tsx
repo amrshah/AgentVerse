@@ -21,6 +21,7 @@ import { INITIAL_AGENTS, AVAILABLE_TOOLS } from "@/lib/data";
 import { TeamColumn } from "./team-column";
 import Header from "./header";
 import { RunOrchestrationButton } from "./run-orchestration-button";
+import { PresetLibrary } from "./preset-library";
 
 type TeamContainer = {
   title: string;
@@ -66,23 +67,28 @@ export default function Dashboard() {
   
     if (!activeContainerKey) return;
   
-    // If overId is a container, we already have overContainerKey.
-    // If overId is an agent, find its container.
-    if (!overContainerKey) {
-      for (const key in containers) {
-        if (containers[key].agents.some(a => a.id === overId)) {
-          overContainerKey = key;
-          break;
+    if (!containers[overId] && !overContainerKey) {
+        // This can happen if the droppable is not an agent or a container.
+        // For example, if it's some other element in the UI.
+        // In this case, we'll try to find the container based on the agent list.
+        for (const key in containers) {
+            if (containers[key].agents.some(a => a.id === overId)) {
+                overContainerKey = key;
+                break;
+            }
         }
-      }
+    } else if (containers[overId]) {
+        // Dropped on a container
+        overContainerKey = overId;
     }
-  
+
+
     if (!overContainerKey) return;
   
     setContainers(prev => {
       const newContainers = { ...prev };
-      const activeContainer = newContainers[activeContainerKey];
-      const overContainer = newContainers[overContainerKey];
+      const activeContainer = newContainers[activeContainerKey!];
+      const overContainer = newContainers[overContainerKey!];
   
       const activeIndex = activeContainer.agents.findIndex(a => a.id === activeId);
       const activeAgent = activeContainer.agents[activeIndex];
@@ -95,7 +101,7 @@ export default function Dashboard() {
         if (overAgent) {
           const overIndex = overContainer.agents.findIndex(a => a.id === overId);
           if (activeIndex !== overIndex) {
-            newContainers[activeContainerKey].agents = arrayMove(activeContainer.agents, activeIndex, overIndex);
+            newContainers[activeContainerKey!].agents = arrayMove(activeContainer.agents, activeIndex, overIndex);
           }
         }
       } else {
@@ -146,6 +152,7 @@ export default function Dashboard() {
     <div className="flex flex-col h-screen">
       <Header availableTools={AVAILABLE_TOOLS} onAgentCreate={handleAgentCreate} />
       <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-8">
+        <PresetLibrary />
         {isClient ? (
             <DndContext
             sensors={sensors}

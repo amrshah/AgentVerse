@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Loader2 } from "lucide-react";
+import { Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import OrchestrationPlanDialog from "./orchestration-plan-dialog";

@@ -22,3 +22,19 @@ export type Team = {
   description: string;
   agents: string[];
 }
+
+// A simplified agent definition for presets
+export interface PresetAgent {
+  name: string;
+  role: string;
+  objectives: string;
+}
+
+export interface OrchestrationPreset {
+  id: string;
+  name: string;
+  description: string;
+  industry: string;
+  agents: PresetAgent[];
+  task: string;
+}

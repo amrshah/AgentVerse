@@ -16,7 +16,6 @@ import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
-import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 
 type OrchestrationPlanDialogProps = {
@@ -24,6 +23,7 @@ type OrchestrationPlanDialogProps = {
   onOpenChange: (isOpen: boolean) => void;
   teamAgents: Agent[];
   teamName: string;
+  initialTask?: string;
 };
 
 export default function OrchestrationPlanDialog({
@@ -31,10 +31,11 @@ export default function OrchestrationPlanDialog({
   onOpenChange,
   teamAgents,
   teamName,
+  initialTask = `Write a report on the future of AI.`,
 }: OrchestrationPlanDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
-  const [task, setTask] = useState(`Write a report on the future of AI.`);
+  const [task, setTask] = useState(initialTask);
   const { toast } = useToast();
 
   const handleConfirmRun = async () => {
@@ -117,7 +118,7 @@ export default function OrchestrationPlanDialog({
                         className="min-h-[100px]"
                     />
                 </div>
-                 <Button onClick={handleConfirmRun} disabled={isLoading}>
+                 <Button onClick={handleConfirmRun} disabled={isLoading || !task}>
                     {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
@@ -133,8 +134,7 @@ export default function OrchestrationPlanDialog({
                         </div>
                     )}
                     {result && !isLoading && (
-                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
-
+                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto flex-grow" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
                     )}
                     {!result && !isLoading && (
                         <div className="flex items-center justify-center h-full">
