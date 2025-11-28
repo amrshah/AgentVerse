@@ -18,6 +18,7 @@ import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { marked } from "marked";
 
 type OrchestrationPlanDialogProps = {
   isOpen: boolean;
@@ -68,7 +69,9 @@ export default function OrchestrationPlanDialog({
       }
       
       if (!abortControllerRef.current.signal.aborted) {
-        setFinalResult(accumulatedResult);
+        const finalHtml = await marked(accumulatedResult);
+        setFinalResult(finalHtml);
+        setResult(finalHtml);
         toast({
           title: "Orchestration Complete",
           description: `Team "${teamName}" has finished its tasks.`,
@@ -114,8 +117,14 @@ export default function OrchestrationPlanDialog({
       });
       return;
     }
+    
+    // Create a blob with plain text content by converting HTML to text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = finalResult;
+    const plainTextResult = tempDiv.textContent || tempDiv.innerText || "";
 
-    const blob = new Blob([finalResult], { type: 'text/markdown;charset=utf-t' });
+
+    const blob = new Blob([plainTextResult], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -225,7 +234,7 @@ export default function OrchestrationPlanDialog({
                             </div>
                         )}
                         {result && (
-                            <div dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+                            <div dangerouslySetInnerHTML={{ __html: isLoading ? marked.parse(result) as string : finalResult }} />
                         )}
                         {!result && !isLoading && (
                             <div className="flex items-center justify-center h-full">
