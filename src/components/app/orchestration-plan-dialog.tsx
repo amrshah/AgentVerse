@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, Loader2, Sparkles, Wand2, XOctagon } from "lucide-react";
-import { runOrchestrationStream } from "@/ai/flows/run-orchestration";
+import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 
 type OrchestrationPlanDialogProps = {
@@ -54,11 +54,10 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       
-      const stream = runOrchestrationStream.stream({ teamName, agents: agentsForFlow, task });
+      const {stream} = await runOrchestration.stream({ teamName, agents: agentsForFlow, task });
 
       for await (const chunk of stream) {
         if (signal.aborted) {
-          stream.controller.abort();
           break;
         }
         setResult(prev => prev + chunk);
