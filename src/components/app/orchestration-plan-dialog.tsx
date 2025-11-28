@@ -173,7 +173,7 @@ export default function OrchestrationPlanDialog({
                             </div>
                         )}
                         {result && (
-                            <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+                            <div className="prose prose-sm dark:prose-invert max-w-none animate-in fade-in" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
                         )}
                         {!result && !isLoading && (
                             <div className="flex items-center justify-center h-full">
