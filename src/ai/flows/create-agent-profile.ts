@@ -9,12 +9,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
+import type { GenkitConfig } from '@/lib/types';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const CreateAgentProfileInputSchema = z.object({
   roleDescription: z
     .string()
     .describe('A high-level description of the agent\'s role and responsibilities.'),
+  config: z.optional(z.any()),
 });
 export type CreateAgentProfileInput = z.infer<typeof CreateAgentProfileInputSchema>;
 
@@ -45,7 +48,20 @@ const createAgentProfileFlow = ai.defineFlow(
     outputSchema: CreateAgentProfileOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { config } = input;
+    const model = config?.model ? googleAI.model(config.model) : ai.model;
+
+    const {output} = await model.generate({
+        prompt: prompt.prompt,
+        input: { roleDescription: input.roleDescription },
+        output: { schema: CreateAgentProfileOutputSchema },
+        config: {
+            temperature: config?.temperature,
+            topK: config?.topK,
+            topP: config?.topP,
+        }
+    });
+    
     return output!;
   }
 );

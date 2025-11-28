@@ -19,6 +19,7 @@ import { Textarea } from "../ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
+import { useSettingsStore } from "@/hooks/use-settings-store";
 
 type OrchestrationPlanDialogProps = {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export default function OrchestrationPlanDialog({
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
   const resultContainerRef = useRef<HTMLDivElement>(null);
+  const { settings } = useSettingsStore();
 
   const handleConfirmRun = async () => {
     setIsLoading(true);
@@ -58,7 +60,7 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       
-      const stream = runOrchestration.stream({ teamName, agents: agentsForFlow, task, strictMode: isStrictMode });
+      const stream = runOrchestration.stream({ teamName, agents: agentsForFlow, task, strictMode: isStrictMode, config: settings });
       let accumulatedResult = "";
       for await (const chunk of stream) {
         if (abortControllerRef.current.signal.aborted) {

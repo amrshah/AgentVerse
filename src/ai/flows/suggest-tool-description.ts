@@ -10,12 +10,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
+import type { GenkitConfig } from '@/lib/types';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const SuggestToolDescriptionInputSchema = z.object({
   toolDescription: z
     .string()
     .describe('A description of the tool for which a schema is to be suggested.'),
+  config: z.optional(z.any()),
 });
 export type SuggestToolDescriptionInput = z.infer<
   typeof SuggestToolDescriptionInputSchema
@@ -57,7 +60,20 @@ const suggestToolDescriptionFlow = ai.defineFlow(
     outputSchema: SuggestToolDescriptionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { config } = input;
+    const model = config?.model ? googleAI.model(config.model) : ai.model;
+
+    const {output} = await model.generate({
+        prompt: prompt.prompt,
+        input: { toolDescription: input.toolDescription },
+        output: { schema: SuggestToolDescriptionOutputSchema },
+        config: {
+            temperature: config?.temperature,
+            topK: config?.topK,
+            topP: config?.topP,
+        }
+    });
+
     return output!;
   }
 );

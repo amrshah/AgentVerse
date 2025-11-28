@@ -38,6 +38,7 @@ import { suggestToolDescription } from "@/ai/flows/suggest-tool-description";
 import type { Agent, Tool } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useSettingsStore } from "@/hooks/use-settings-store";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -64,6 +65,7 @@ export default function CreateAgentDialog({
   const [customToolDescription, setCustomToolDescription] = useState("");
   const [suggestedSchema, setSuggestedSchema] = useState("");
   const { toast } = useToast();
+  const { settings } = useSettingsStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,7 +90,7 @@ export default function CreateAgentDialog({
     }
     setIsGenerating(true);
     try {
-      const result = await createAgentProfile({ roleDescription: role });
+      const result = await createAgentProfile({ roleDescription: role, config: settings });
       form.setValue("objectives", result.agentProfile);
       toast({
         title: "Profile Generated",
@@ -113,7 +115,7 @@ export default function CreateAgentDialog({
     }
     setIsSuggesting(true);
     try {
-        const result = await suggestToolDescription({ toolDescription: customToolDescription });
+        const result = await suggestToolDescription({ toolDescription: customToolDescription, config: settings });
         setSuggestedSchema(result.jsonSchema);
     } catch (error) {
         console.error(error);

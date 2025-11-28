@@ -9,7 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const AgentSchema = z.object({
   name: z.string().describe('The name of the agent.'),
@@ -22,6 +23,7 @@ const RunOrchestrationInputSchema = z.object({
   agents: z.array(AgentSchema).describe('The agents in the team.'),
   task: z.string().describe('The overall task for the team.'),
   strictMode: z.boolean().optional().describe('If true, the agents must strictly adhere to their instructions without creative deviation.'),
+  config: z.optional(z.any()),
 });
 export type RunOrchestrationInput = z.infer<typeof RunOrchestrationInputSchema>;
 
@@ -68,8 +70,20 @@ export const runOrchestration = ai.defineFlow(
     inputSchema: RunOrchestrationInputSchema,
     outputSchema: z.string(),
   },
-  async input => {
-    const {text} = await prompt(input);
+  async (input) => {
+    const { config } = input;
+    const model = config?.model ? googleAI.model(config.model) : ai.model;
+    
+    const { text } = await model.generate({
+      prompt: prompt.prompt,
+      input: input,
+      config: {
+        temperature: config?.temperature,
+        topK: config?.topK,
+        topP: config?.topP,
+      }
+    });
+
     return text;
   }
 );

@@ -38,3 +38,10 @@ export interface OrchestrationPreset {
   agents: PresetAgent[];
   task: string;
 }
+
+export interface GenkitConfig {
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+}
