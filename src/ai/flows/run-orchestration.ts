@@ -4,13 +4,13 @@
  * @fileOverview A flow for running an orchestration of a team of agents.
  *
  * - runOrchestration - A function that orchestrates a team of agents to produce a result.
+ * - runOrchestrationStream - A function that streams the result of the orchestration.
  * - RunOrchestrationInput - The input type for the runOrchestration function.
  * - RunOrchestrationOutput - The return type for the runOrchestration function.
  */
 
 import {ai} from '@/ai/genkit';
-import {run, stream} from 'genkit';
-import {z} from 'genkit';
+import {run, z} from 'genkit';
 
 const AgentSchema = z.object({
   name: z.string().describe('The name of the agent.'),
@@ -37,16 +37,6 @@ export type RunOrchestrationOutput = z.infer<
 export async function runOrchestration(input: RunOrchestrationInput) {
   return runOrchestrationFlow(input);
 }
-
-export const runOrchestrationStream = stream({
-  name: 'runOrchestrationStream',
-  inputSchema: RunOrchestrationInputSchema,
-  outputSchema: z.string(),
-}, async (input) => {
-  const {stream} = await runOrchestrationFlow.stream(input);
-  return stream;
-});
-
 
 const prompt = ai.definePrompt({
   name: 'runOrchestrationPrompt',
@@ -83,3 +73,19 @@ const runOrchestrationFlow = ai.defineFlow(
     return text;
   }
 );
+
+export const runOrchestrationStream = run(
+    {
+      name: 'runOrchestrationStream',
+      input: RunOrchestrationInputSchema,
+      output: z.string(),
+    },
+    async (input: RunOrchestrationInput) => {
+      const {stream} = await runOrchestrationFlow.stream(input);
+      let result = '';
+      for await (const chunk of stream) {
+        result += chunk;
+      }
+      return result;
+    }
+  );
