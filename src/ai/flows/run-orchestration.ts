@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {run, stream} from 'genkit';
 import {z} from 'genkit';
 
 const AgentSchema = z.object({
@@ -33,19 +34,29 @@ export type RunOrchestrationOutput = z.infer<
   typeof RunOrchestrationOutputSchema
 >;
 
-export async function runOrchestration(
-  input: RunOrchestrationInput
-): Promise<RunOrchestrationOutput> {
+export async function runOrchestration(input: RunOrchestrationInput) {
   return runOrchestrationFlow(input);
 }
+
+export const runOrchestrationStream = stream({
+  name: 'runOrchestrationStream',
+  inputSchema: RunOrchestrationInputSchema,
+  outputSchema: z.string(),
+}, async (input) => {
+  const {stream} = await runOrchestrationFlow.stream(input);
+  return stream;
+});
+
 
 const prompt = ai.definePrompt({
   name: 'runOrchestrationPrompt',
   input: {schema: RunOrchestrationInputSchema},
-  output: {schema: RunOrchestrationOutputSchema},
+  output: {format: 'text'},
   prompt: `You are a master orchestrator of AI agents. You will be given a team of agents, their roles, and their objectives, along with an overall task. Your job is to simulate the collaboration of these agents and produce a final result that reflects their combined efforts.
 
-The output should be a plausible result of their collaboration, formatted in Markdown.
+Your output should be a step-by-step narrative of their collaboration, formatted in Markdown. For each step, announce which agent is performing the action. For example: "**[Agent Name]**: [Action or thought process]".
+
+The final output should be the completed task, but the process should show the agents working together.
 
 Team: {{{teamName}}}
 Task: {{{task}}}
@@ -57,7 +68,7 @@ Here are the agents in the team:
   Objectives: {{{this.objectives}}}
 {{/each}}
 
-Based on this information, generate the final result of their work. For example, if there's a researcher and a writer, the output should be the article they produced.
+Based on this information, generate the step-by-step process and the final result of their work.
 `,
 });
 
@@ -65,10 +76,10 @@ const runOrchestrationFlow = ai.defineFlow(
   {
     name: 'runOrchestrationFlow',
     inputSchema: RunOrchestrationInputSchema,
-    outputSchema: RunOrchestrationOutputSchema,
+    outputSchema: z.string(),
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const {text} = await prompt(input);
+    return text;
   }
 );

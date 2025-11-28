@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, Loader2, Sparkles, Wand2, XOctagon } from "lucide-react";
-import { runOrchestration } from "@/ai/flows/run-orchestration";
+import { runOrchestrationStream } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 
 type OrchestrationPlanDialogProps = {
@@ -38,6 +38,7 @@ export default function OrchestrationPlanDialog({
   const [task, setTask] = useState(initialTask);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
+  const resultContainerRef = useRef<HTMLDivElement>(null);
 
   const handleConfirmRun = async () => {
     setIsLoading(true);
@@ -52,17 +53,26 @@ export default function OrchestrationPlanDialog({
 
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
-      const response = await runOrchestration({ teamName, agents: agentsForFlow, task });
+      
+      const stream = runOrchestrationStream.stream({ teamName, agents: agentsForFlow, task });
 
+      for await (const chunk of stream) {
+        if (signal.aborted) {
+          stream.controller.abort();
+          break;
+        }
+        setResult(prev => prev + chunk);
+      }
+      
       if (!signal.aborted) {
-        setResult(response.result);
         toast({
           title: "Orchestration Complete",
           description: `Team "${teamName}" has finished its tasks.`,
         });
       }
+
     } catch (error: any) {
-      if (error.name === 'AbortError' || signal.aborted) {
+      if (signal.aborted) {
         toast({
           variant: "destructive",
           title: "Orchestration Stopped",
@@ -102,6 +112,12 @@ export default function OrchestrationPlanDialog({
         setIsLoading(false);
     }, 300);
   }
+
+  useEffect(() => {
+    if (resultContainerRef.current) {
+      resultContainerRef.current.scrollTop = resultContainerRef.current.scrollHeight;
+    }
+  }, [result]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose()}}>
@@ -166,14 +182,14 @@ export default function OrchestrationPlanDialog({
 
                 <div className="flex-grow bg-muted/50 rounded-lg p-4 flex flex-col min-h-[200px] overflow-hidden">
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 flex-shrink-0"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
-                    <div className="flex-grow overflow-y-auto">
+                    <div ref={resultContainerRef} className="flex-grow overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
                         {isLoading && !result && (
                             <div className="flex items-center justify-center h-full">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
                         )}
                         {result && (
-                            <div className="prose prose-sm dark:prose-invert max-w-none animate-in fade-in" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
+                            <div dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, '<br />') }} />
                         )}
                         {!result && !isLoading && (
                             <div className="flex items-center justify-center h-full">
