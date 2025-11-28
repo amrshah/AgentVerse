@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, Loader2, Sparkles, Wand2, XOctagon } from "lucide-react";
+import { Bot, Loader2, Sparkles, Wand2, XOctagon, Download } from "lucide-react";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 
@@ -35,6 +35,7 @@ export default function OrchestrationPlanDialog({
 }: OrchestrationPlanDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
+  const [finalResult, setFinalResult] = useState("");
   const [task, setTask] = useState(initialTask);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
@@ -43,6 +44,7 @@ export default function OrchestrationPlanDialog({
   const handleConfirmRun = async () => {
     setIsLoading(true);
     setResult("");
+    setFinalResult("");
     abortControllerRef.current = new AbortController();
 
     toast({
@@ -53,16 +55,18 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       
-      const stream = await runOrchestration.stream({ teamName, agents: agentsForFlow, task });
-
+      const stream = runOrchestration.stream({ teamName, agents: agentsForFlow, task });
+      let accumulatedResult = "";
       for await (const chunk of stream) {
         if (abortControllerRef.current.signal.aborted) {
           break;
         }
-        setResult(prev => prev + chunk);
+        accumulatedResult += chunk;
+        setResult(accumulatedResult);
       }
       
       if (!abortControllerRef.current.signal.aborted) {
+        setFinalResult(accumulatedResult);
         toast({
           title: "Orchestration Complete",
           description: `Team "${teamName}" has finished its tasks.`,
@@ -99,6 +103,33 @@ export default function OrchestrationPlanDialog({
     }
   };
 
+  const handleDownloadLog = () => {
+    if (!finalResult) {
+      toast({
+        variant: 'destructive',
+        title: 'Download Failed',
+        description: 'There is no result to download.',
+      });
+      return;
+    }
+
+    const blob = new Blob([finalResult], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    link.download = `orchestration-log-${teamName.replace(/\s+/g, '-')}-${timestamp}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+        title: 'Log Downloaded',
+        description: 'The orchestration result has been saved.',
+    });
+  };
+
   const handleClose = () => {
     if (isLoading) {
       handleStopRun();
@@ -107,6 +138,7 @@ export default function OrchestrationPlanDialog({
     // Delay resetting state to allow for exit animation
     setTimeout(() => {
         setResult("");
+        setFinalResult("");
         setIsLoading(false);
     }, 300);
   }
@@ -199,7 +231,11 @@ export default function OrchestrationPlanDialog({
             </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="items-center">
+            <Button variant="secondary" onClick={handleDownloadLog} disabled={!finalResult}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Log
+            </Button>
           <Button variant="outline" onClick={handleClose}>
             Close
           </Button>
