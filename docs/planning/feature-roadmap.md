@@ -3,11 +3,11 @@
 This document serves as the single source of truth for the AgentVerse product vision, tracking both completed features and the future roadmap.
 
 ---
-## Version 0.0.1: Initial Prototype
+## Version 0.1.0: Initial Prototype
 
 This version establishes the core mechanics of agent creation, team formation, and AI-driven orchestration.
 
-### ✅ Implemented Features (Phase 1-3)
+### ✅ Implemented Features
 
 These features form the foundation of the AgentVerse platform.
 
@@ -24,7 +24,7 @@ These features form the foundation of the AgentVerse platform.
 
 ---
 
-## 🎯 Version 0.1.0 and Beyond: The Platform Phase
+## 🎯 Version 0.2.0 and Beyond: The Platform Phase
 
 This next major version will transform AgentVerse from a standalone tool into a collaborative, multi-user platform.
 
