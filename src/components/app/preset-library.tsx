@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -9,6 +8,7 @@ import { Play } from 'lucide-react';
 import OrchestrationPlanDialog from './orchestration-plan-dialog';
 import type { Agent } from '@/lib/types';
 import { Badge } from '../ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const industries = ["All", ...Array.from(new Set(ORCHESTRATION_PRESETS.map(p => p.industry)))];
 
@@ -54,25 +54,36 @@ export function PresetLibrary() {
             ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPresets.map((preset) => (
-                <Card key={preset.id} className="flex flex-col">
-                    <CardHeader>
-                        <CardTitle>{preset.name}</CardTitle>
-                        <CardDescription>{preset.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                         <Badge variant="secondary">{preset.industry}</Badge>
-                    </CardContent>
-                    <CardFooter>
-                        <Button onClick={() => handleRunPreset(preset)} className="w-full">
-                            <Play className="mr-2" />
-                            Run Preset
-                        </Button>
-                    </CardFooter>
-                </Card>
-            ))}
-        </div>
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <AnimatePresence>
+                {filteredPresets.map((preset) => (
+                    <motion.div
+                        key={preset.id}
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Card className="flex flex-col h-full">
+                            <CardHeader>
+                                <CardTitle>{preset.name}</CardTitle>
+                                <CardDescription>{preset.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow">
+                                <Badge variant="secondary">{preset.industry}</Badge>
+                            </CardContent>
+                            <CardFooter>
+                                <Button onClick={() => handleRunPreset(preset)} className="w-full">
+                                    <Play className="mr-2" />
+                                    Run Preset
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    </motion.div>
+                ))}
+            </AnimatePresence>
+        </motion.div>
 
         {selectedPreset && (
             <OrchestrationPlanDialog

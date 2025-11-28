@@ -4,6 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AgentCard } from "./agent-card";
 import type { Agent } from "@/lib/types";
+import { motion } from "framer-motion";
 
 type TeamColumnProps = {
   id: string;
@@ -15,7 +16,10 @@ export function TeamColumn({ id, title, agents }: TeamColumnProps) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
-    <div className="flex flex-col w-full bg-secondary/50 rounded-lg p-4 h-full min-h-[500px]">
+    <motion.div 
+      layout
+      className="flex flex-col w-full bg-secondary/50 rounded-lg p-4 h-full min-h-[500px]"
+    >
       <h2 className="text-xl font-semibold mb-4 text-center text-foreground">{title}</h2>
       <div
         ref={setNodeRef}
@@ -33,6 +37,6 @@ export function TeamColumn({ id, title, agents }: TeamColumnProps) {
           )}
         </SortableContext>
       </div>
-    </div>
+    </motion.div>
   );
 }
