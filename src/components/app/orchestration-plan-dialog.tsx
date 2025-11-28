@@ -44,7 +44,6 @@ export default function OrchestrationPlanDialog({
     setIsLoading(true);
     setResult("");
     abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
 
     toast({
       title: "Orchestration Started",
@@ -54,16 +53,16 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       
-      const {stream} = await runOrchestration.stream({ teamName, agents: agentsForFlow, task });
+      const stream = await runOrchestration.stream({ teamName, agents: agentsForFlow, task });
 
       for await (const chunk of stream) {
-        if (signal.aborted) {
+        if (abortControllerRef.current.signal.aborted) {
           break;
         }
         setResult(prev => prev + chunk);
       }
       
-      if (!signal.aborted) {
+      if (!abortControllerRef.current.signal.aborted) {
         toast({
           title: "Orchestration Complete",
           description: `Team "${teamName}" has finished its tasks.`,
@@ -71,7 +70,7 @@ export default function OrchestrationPlanDialog({
       }
 
     } catch (error: any) {
-      if (signal.aborted) {
+      if (abortControllerRef.current.signal.aborted) {
         toast({
           variant: "destructive",
           title: "Orchestration Stopped",
@@ -86,7 +85,7 @@ export default function OrchestrationPlanDialog({
         });
       }
     } finally {
-      if (!signal.aborted) {
+      if (!abortControllerRef.current || !abortControllerRef.current.signal.aborted) {
         setIsLoading(false);
       }
       abortControllerRef.current = null;
