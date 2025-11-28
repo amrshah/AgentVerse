@@ -7,7 +7,7 @@ This document serves as the single source of truth for the AgentVerse product vi
 
 This version establishes the core mechanics of agent creation, team formation, and AI-driven orchestration.
 
-### ✅ Implemented Features
+### Implemented Features
 
 These features form the foundation of the AgentVerse platform.
 
@@ -24,7 +24,7 @@ These features form the foundation of the AgentVerse platform.
 
 ---
 
-## 🎯 Version 0.2.0 and Beyond: The Platform Phase
+## Version 0.2.0 and Beyond: The Platform Phase
 
 This next major version will transform AgentVerse from a standalone tool into a collaborative, multi-user platform.
 
