@@ -25,7 +25,8 @@ Key features implemented:
 
 We are now beginning the **Platform Phase**, which will transform AgentVerse into a collaborative, multi-user application.
 
-For a detailed vision and the full feature roadmap, please see `docs/planning/feature-roadmap.md`.
+For a detailed vision and the full feature roadmap, please see [Feature Roadmap](docs/planning/feature-roadmap.md).
+
 
 ## Getting Started
 
