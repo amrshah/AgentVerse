@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -17,6 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, Loader2, Sparkles, Wand2, XOctagon, Download } from "lucide-react";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type OrchestrationPlanDialogProps = {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export default function OrchestrationPlanDialog({
   const [result, setResult] = useState("");
   const [finalResult, setFinalResult] = useState("");
   const [task, setTask] = useState(initialTask);
+  const [isStrictMode, setIsStrictMode] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
   const resultContainerRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ export default function OrchestrationPlanDialog({
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
       
-      const stream = runOrchestration.stream({ teamName, agents: agentsForFlow, task });
+      const stream = runOrchestration.stream({ teamName, agents: agentsForFlow, task, strictMode: isStrictMode });
       let accumulatedResult = "";
       for await (const chunk of stream) {
         if (abortControllerRef.current.signal.aborted) {
@@ -113,7 +115,7 @@ export default function OrchestrationPlanDialog({
       return;
     }
 
-    const blob = new Blob([finalResult], { type: 'text/markdown;charset=utf-8' });
+    const blob = new Blob([finalResult], { type: 'text/markdown;charset=utf-t' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -192,6 +194,10 @@ export default function OrchestrationPlanDialog({
                         className="min-h-[100px]"
                         disabled={isLoading}
                     />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch id="strict-mode" checked={isStrictMode} onCheckedChange={setIsStrictMode} disabled={isLoading} />
+                  <Label htmlFor="strict-mode">Strict Mode</Label>
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={handleConfirmRun} disabled={isLoading || !task} className="flex-grow">

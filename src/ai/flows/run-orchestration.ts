@@ -21,6 +21,7 @@ const RunOrchestrationInputSchema = z.object({
   teamName: z.string().describe('The name of the team.'),
   agents: z.array(AgentSchema).describe('The agents in the team.'),
   task: z.string().describe('The overall task for the team.'),
+  strictMode: z.boolean().optional().describe('If true, the agents must strictly adhere to their instructions without creative deviation.'),
 });
 export type RunOrchestrationInput = z.infer<typeof RunOrchestrationInputSchema>;
 
@@ -41,7 +42,11 @@ const prompt = ai.definePrompt({
 
 Your output should be a step-by-step narrative of their collaboration, formatted in Markdown. For each step, announce which agent is performing the action. For example: "**[Agent Name]**: [Action or thought process]".
 
-The final output should be the completed task, but the process should show the agents working together.
+The final output should be the completed task, but the process should show the agents working together, thinking, and passing control to one another.
+
+{{#if strictMode}}
+**STRICT MODE ACTIVATED**: You must adhere strictly to the objectives of each agent and the overall task. Do not add any creative elements, suggestions, or information that is not directly supported by the agent roles and the task description. The output should be a direct and literal execution of the instructions.
+{{/if}}
 
 Team: {{{teamName}}}
 Task: {{{task}}}
