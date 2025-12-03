@@ -144,7 +144,36 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
       : result && 'result' in result ? (result as any).result
       : result ? JSON.stringify(result, null, 2) : "";
 
-  const resultLanguage = typeof result === 'object' ? 'json' : undefined;
+  const resultLanguage = typeof result === 'object' && !(result && 'result' in result) ? 'json' : undefined;
+
+  const handleOpenInNewTab = () => {
+    if (!resultString) return;
+    const newTabContent = `
+      <html>
+        <head>
+          <title>Agent Result: ${task}</title>
+          <style>
+            body { font-family: sans-serif; line-height: 1.6; color: #e0e0e0; background-color: #1a1a1a; margin: 0; padding: 2rem 4rem; }
+            .container { max-width: 800px; margin: 0 auto; }
+            pre { white-space: pre-wrap; word-wrap: break-word; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div id="content"></div>
+          </div>
+          <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>
+          <script>
+            document.getElementById('content').innerHTML = marked.parse(\`${resultString.replace(/`/g, '\\`')}\`);
+          <\/script>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([newTabContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
 
   return (
     <>
@@ -225,6 +254,9 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="icon" onClick={() => navigator.clipboard.writeText(resultString)}>
                                 <Copy className="h-4 w-4" />
+                            </Button>
+                             <Button variant="ghost" size="icon" onClick={handleOpenInNewTab}>
+                                <ExternalLink className="h-4 w-4" />
                             </Button>
                         </div>
                     )}
