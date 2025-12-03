@@ -18,6 +18,7 @@ import {
 import { Textarea } from "../ui/textarea";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { createChatbot } from "@/ai/flows/create-chatbot-flow";
+import { createSupportbot } from "@/ai/flows/create-supportbot-flow";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
@@ -29,32 +30,65 @@ type AgentRunnerProps = {
   agent: Agent;
 };
 
+const getAgentConfig = (agentId: string) => {
+    switch (agentId) {
+        case 'agent-lq':
+            return {
+                isPersonaBuilder: true,
+                title: (name: string) => `Configure ${name}`,
+                description: "Provide a description of your business and select a role to generate a lead qualification chatbot persona.",
+                inputLabel: "Business Description",
+                placeholder: "e.g., A real estate agency specializing in luxury downtown condos.",
+                roles: ["Friendly Assistant", "Professional Consultant", "Eager Newcomer", "Knowledgeable Expert", "Concise & To-the-point"],
+                defaultRole: "Friendly Assistant",
+                handler: (task: string, role: string) => createChatbot({ businessDescription: task, chatbotRole: role }),
+            };
+        case 'agent-ts':
+            return {
+                isPersonaBuilder: true,
+                title: (name: string) => `Configure ${name}`,
+                description: "Provide a description of your product or service to generate a technical support bot persona.",
+                inputLabel: "Product/Service Description",
+                placeholder: "e.g., A SaaS platform for project management.",
+                roles: ["Patient Guide", "Efficient Expert", "Friendly Helper", "Technical & Thorough"],
+                defaultRole: "Patient Guide",
+                handler: (task: string, role: string) => createSupportbot({ productDescription: task, chatbotRole: role }),
+            };
+        default:
+            return {
+                isPersonaBuilder: false,
+                title: (name: string) => `Run Agent: ${name}`,
+                description: "Provide a task for the agent to perform.",
+                inputLabel: "Task",
+                placeholder: "e.g., Write a blog post about the benefits of AI.",
+                roles: [],
+                defaultRole: "",
+                handler: async (task: string, role: string, agent: Agent) => {
+                    const agentsForFlow = [{ name: agent.name, role: agent.role, objectives: agent.objectives }];
+                    return await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
+                }
+            };
+    }
+}
+
+
 export function AgentRunner({ agent }: AgentRunnerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<string | object | null>(null);
+  
+  const config = getAgentConfig(agent.id);
+  
   const [task, setTask] = useState("");
-  const [chatbotRole, setChatbotRole] = useState("Friendly Assistant");
+  const [selectedRole, setSelectedRole] = useState(config.defaultRole);
   const { toast } = useToast();
-
-  const isChatbotPersonaBuilder = agent.id === 'agent-cb';
-  const title = isChatbotPersonaBuilder ? `Configure ${agent.name}` : `Run Agent: ${agent.name}`;
-  const description = isChatbotPersonaBuilder 
-    ? "Provide a description of your business and select a role to generate a lead qualification chatbot persona."
-    : "Provide a task for the agent to perform.";
-  const inputLabel = isChatbotPersonaBuilder ? "Business Description" : "Task";
-  const placeholder = isChatbotPersonaBuilder
-    ? "e.g., A real estate agency specializing in luxury downtown condos."
-    : "e.g., Write a blog post about the benefits of AI.";
-
-  const chatbotRoles = ["Friendly Assistant", "Professional Consultant", "Eager Newcomer", "Knowledgeable Expert", "Concise & To-the-point"];
 
   const handleRun = async () => {
     if (!task) {
       toast({
         variant: "destructive",
         title: "Input required",
-        description: `Please provide a ${inputLabel.toLowerCase()} for the agent.`,
+        description: `Please provide a ${config.inputLabel.toLowerCase()} for the agent.`,
       });
       return;
     }
@@ -64,13 +98,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     toast({ title: "Agent started", description: `${agent.name} is on the job.` });
 
     try {
-      let response: any;
-      if (isChatbotPersonaBuilder) {
-        response = await createChatbot({ businessDescription: task, chatbotRole });
-      } else {
-        const agentsForFlow = [{ name: agent.name, role: agent.role, objectives: agent.objectives }];
-        response = await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
-      }
+      const response = await config.handler(task, selectedRole, agent);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -90,6 +118,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
         setResult(null);
         setIsLoading(false);
         setTask("");
+        setSelectedRole(config.defaultRole);
     }, 300);
   }
 
@@ -110,8 +139,8 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle>{config.title(agent.name)}</DialogTitle>
+            <DialogDescription>{config.description}</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow overflow-y-auto p-1">
@@ -127,15 +156,15 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                     </div>
                 </div>
 
-                {isChatbotPersonaBuilder && (
+                {config.isPersonaBuilder && (
                   <div className="space-y-2">
                     <Label htmlFor="chatbot-role">Select Role</Label>
-                    <Select value={chatbotRole} onValueChange={setChatbotRole}>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
                       <SelectTrigger id="chatbot-role">
                         <SelectValue placeholder="Select a role for the chatbot..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {chatbotRoles.map(role => (
+                        {config.roles.map(role => (
                           <SelectItem key={role} value={role}>{role}</SelectItem>
                         ))}
                       </SelectContent>
@@ -144,12 +173,12 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                 )}
 
                  <div className="space-y-2">
-                    <Label htmlFor="task" className="font-semibold">{inputLabel}</Label>
+                    <Label htmlFor="task" className="font-semibold">{config.inputLabel}</Label>
                     <Textarea 
                         id="task"
                         value={task}
                         onChange={(e) => setTask(e.target.value)}
-                        placeholder={placeholder}
+                        placeholder={config.placeholder}
                         className="min-h-[120px]"
                     />
                 </div>

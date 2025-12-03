@@ -43,10 +43,16 @@ export const CORE_AGENTS: Pick<Agent, 'name' | 'role' | 'objectives' | 'id'>[] =
     objectives: 'Write engaging content, brainstorm branding ideas, craft UX copy, and design pitch deck slides.'
   },
   {
-    id: 'agent-cb',
-    name: 'Chatbot Persona Builder',
-    role: 'Designs chatbot personalities and scripts',
+    id: 'agent-lq',
+    name: 'Lead Qualification Bot',
+    role: 'Generates a chatbot persona for qualifying leads.',
     objectives: 'Create a persona and script for a lead qualification chatbot based on a business description.'
+  },
+    {
+    id: 'agent-ts',
+    name: 'Technical Support Bot',
+    role: 'Generates a chatbot persona for technical support.',
+    objectives: 'Create a persona and script for a technical support chatbot based on a product description.'
   }
 ];
 

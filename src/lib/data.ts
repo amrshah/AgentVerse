@@ -100,13 +100,23 @@ export const INITIAL_AGENTS: Agent[] = [
     tools: [],
   },
   {
-    id: 'agent-cb',
-    name: 'Chatbot Persona Builder',
-    role: 'Designs chatbot personalities and scripts',
+    id: 'agent-lq',
+    name: 'Lead Qualification Bot',
+    role: 'Generates a chatbot persona for qualifying leads.',
     objectives: 'Create a persona and script for a lead qualification chatbot based on a business description.',
     constraints: 'The chatbot script should be friendly, concise, and designed to gather key information from potential customers.',
-    avatar: PlaceHolderImages.find(p => p.id === 'agent-cb')?.imageUrl || '',
-    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-cb')?.imageHint || '',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-lq')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-lq')?.imageHint || '',
+    tools: [],
+  },
+  {
+    id: 'agent-ts',
+    name: 'Technical Support Bot',
+    role: 'Generates a chatbot persona for technical support.',
+    objectives: 'Create a persona and script for a technical support chatbot based on a product description.',
+    constraints: 'The chatbot script should be patient, clear, and designed to diagnose and solve common user issues.',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-ts')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-ts')?.imageHint || '',
     tools: [],
   }
 ];
