@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "../ui/textarea";
-import { runOrchestration } from "@/ai/flows/run-orchestration";
+import { runAgent } from "@/ai/flows/run-agent-flow";
 import { createChatbot } from "@/ai/flows/create-chatbot-flow";
 import { createSupportbot } from "@/ai/flows/create-supportbot-flow";
 import ReactMarkdown from "react-markdown";
@@ -66,8 +66,8 @@ const getAgentConfig = (agentId: string) => {
                 roles: [],
                 defaultRole: "",
                 handler: async (task: string, persona: string, agent: Agent) => {
-                    const agentsForFlow = [{ name: agent.name, role: persona, objectives: persona }];
-                    return await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
+                    const agentForFlow = { name: agent.name, role: persona, objectives: persona };
+                    return await runAgent({ agent: agentForFlow, task });
                 }
             };
         default:
@@ -81,8 +81,8 @@ const getAgentConfig = (agentId: string) => {
                 roles: [],
                 defaultRole: "",
                 handler: async (task: string, role: string, agent: Agent) => {
-                    const agentsForFlow = [{ name: agent.name, role: agent.role, objectives: agent.objectives }];
-                    return await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
+                    const agentForFlow = { name: agent.name, role: agent.role, objectives: agent.objectives };
+                    return await runAgent({ agent: agentForFlow, task });
                 }
             };
     }
@@ -156,6 +156,9 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
             body { font-family: sans-serif; line-height: 1.6; color: #e0e0e0; background-color: #1a1a1a; margin: 0; padding: 2rem 4rem; }
             .container { max-width: 800px; margin: 0 auto; }
             pre { white-space: pre-wrap; word-wrap: break-word; }
+            h1, h2, h3 { color: #fff; }
+            code { background-color: #333; padding: 0.2em 0.4em; border-radius: 3px; }
+            pre code { padding: 0; background: none; }
           </style>
         </head>
         <body>
