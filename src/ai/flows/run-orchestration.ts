@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -50,11 +51,9 @@ First, you will be given a team of agents, their roles, and their objectives, al
 Team: {{{teamName}}}
 Task: {{{task}}}
 
-Here are the agents in the team:
+Here are the agents in the team in a compact format:
 {{#each agents}}
-- Name: {{{this.name}}}
-  Role: {{{this.role}}}
-  Objectives: {{{this.objectives}}}
+- {{{this.name}}} ({{{this.role}}}): {{{this.objectives}}}
 {{/each}}
 
 Based on this information, you must first create a step-by-step execution plan. The plan should be clear, logical, and delegate tasks to the most appropriate agent(s).
