@@ -19,6 +19,7 @@ import { runOrchestration } from "@/ai/flows/run-orchestration";
 import { Textarea } from "../ui/textarea";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import CodeBlock from "./code-block";
 
 type OrchestrationPlanDialogProps = {
   isOpen: boolean;
@@ -261,8 +262,29 @@ export default function OrchestrationPlanDialog({
                             </div>
                         )}
                         {result && !isLoading && (
-                            <div className="prose prose-sm dark:prose-invert max-w-none h-full">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
+                           <div className="prose prose-sm dark:prose-invert max-w-none h-full">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        code({ node, inline, className, children, ...props }) {
+                                            const match = /language-(\w+)/.exec(className || '');
+                                            const codeString = String(children).replace(/\n$/, '');
+                                            return !inline && match ? (
+                                                <CodeBlock
+                                                    language={match[1]}
+                                                    value={codeString}
+                                                    {...props}
+                                                />
+                                            ) : (
+                                                <code className={className} {...props}>
+                                                    {children}
+                                                </code>
+                                            );
+                                        },
+                                    }}
+                                >
+                                    {result}
+                                </ReactMarkdown>
                             </div>
                         )}
                         {!result && !isLoading && (
