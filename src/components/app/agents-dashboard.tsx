@@ -5,28 +5,30 @@ import { useState } from "react";
 import type { Agent } from "@/lib/types";
 import { AVAILABLE_TOOLS } from "@/lib/data";
 import Header from "./header";
-import { CORE_AGENTS } from "@/lib/orchestration-presets";
+import { CORE_AGENTS }from "@/lib/orchestration-presets";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { AgentCard } from "./agent-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
+import { AgentRunner } from "./agent-runner";
 
 export default function AgentsDashboard() {
   const [agents, setAgents] = useState<Agent[]>(() => 
     CORE_AGENTS.map((coreAgent) => {
-      const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+      const avatar = PlaceHolderImages.find(p => p.id === coreAgent.id);
       return {
         ...coreAgent,
         constraints: '',
         tools: [],
-        avatar: randomAvatar.imageUrl,
-        avatarHint: randomAvatar.imageHint,
+        avatar: avatar?.imageUrl || `https://picsum.photos/seed/${coreAgent.id}/200`,
+        avatarHint: avatar?.imageHint || 'abstract',
       };
     })
   );
 
   const handleAgentCreate = (newAgent: Agent) => {
-    setAgents(prev => [...prev, newAgent]);
+    // This is for the main orchestration pool, we can decide if we want to add it here too.
+    // setAgents(prev => [...prev, newAgent]);
+    console.log("New agent created in main pool:", newAgent);
   };
 
   return (
@@ -54,7 +56,7 @@ export default function AgentsDashboard() {
                                 <strong>Objectives:</strong> {agent.objectives}
                             </p>
                         </div>
-                        <Button className="mt-4 w-full" variant="secondary">View Details</Button>
+                        <AgentRunner agent={agent} />
                     </CardContent>
                 </Card>
             ))}
