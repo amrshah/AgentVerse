@@ -34,13 +34,13 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
   const [task, setTask] = useState("");
   const { toast } = useToast();
 
-  const isChatbotBuilder = agent.id === 'agent-cb';
-  const title = isChatbotBuilder ? `Configure ${agent.name}` : `Run Agent: ${agent.name}`;
-  const description = isChatbotBuilder 
+  const isChatbotPersonaBuilder = agent.id === 'agent-cb';
+  const title = isChatbotPersonaBuilder ? `Configure ${agent.name}` : `Run Agent: ${agent.name}`;
+  const description = isChatbotPersonaBuilder 
     ? "Provide a description of your business to generate a lead qualification chatbot persona."
     : "Provide a task for the agent to perform.";
-  const inputLabel = isChatbotBuilder ? "Business Description" : "Task";
-  const placeholder = isChatbotBuilder
+  const inputLabel = isChatbotPersonaBuilder ? "Business Description" : "Task";
+  const placeholder = isChatbotPersonaBuilder
     ? "e.g., A real estate agency specializing in luxury downtown condos."
     : "e.g., Write a blog post about the benefits of AI.";
 
@@ -61,7 +61,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
 
     try {
       let response: any;
-      if (isChatbotBuilder) {
+      if (isChatbotPersonaBuilder) {
         response = await createChatbot({ businessDescription: task });
       } else {
         const agentsForFlow = [{ name: agent.name, role: agent.role, objectives: agent.objectives }];

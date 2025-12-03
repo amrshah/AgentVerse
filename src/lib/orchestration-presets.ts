@@ -1,3 +1,4 @@
+
 import type { Agent } from './types';
 
 export type OrchestrationPreset = {
@@ -43,8 +44,8 @@ export const CORE_AGENTS: Pick<Agent, 'name' | 'role' | 'objectives' | 'id'>[] =
   },
   {
     id: 'agent-cb',
-    name: 'Chat Bot Builder',
-    role: 'Generates conversational AI bots',
+    name: 'Chatbot Persona Builder',
+    role: 'Designs chatbot personalities and scripts',
     objectives: 'Create a persona and script for a lead qualification chatbot based on a business description.'
   }
 ];

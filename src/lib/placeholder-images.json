@@ -26,7 +26,7 @@
     },
     {
       "id": "agent-cb",
-      "description": "Avatar for a chat bot builder agent",
+      "description": "Avatar for a chatbot persona builder agent",
       "imageUrl": "https://images.unsplash.com/photo-1534126511673-b68e74f22069?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGF0JTIwYnViYmxlc3xlbnwwfHx8fDE3NjQ4NjA0MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "chat bubbles"
     }

@@ -1,3 +1,4 @@
+
 import type { Agent, Tool } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -100,8 +101,8 @@ export const INITIAL_AGENTS: Agent[] = [
   },
   {
     id: 'agent-cb',
-    name: 'Chat Bot Builder',
-    role: 'Generates conversational AI bots',
+    name: 'Chatbot Persona Builder',
+    role: 'Designs chatbot personalities and scripts',
     objectives: 'Create a persona and script for a lead qualification chatbot based on a business description.',
     constraints: 'The chatbot script should be friendly, concise, and designed to gather key information from potential customers.',
     avatar: PlaceHolderImages.find(p => p.id === 'agent-cb')?.imageUrl || '',
