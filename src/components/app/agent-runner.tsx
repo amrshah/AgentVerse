@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "../ui/textarea";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
@@ -54,10 +53,28 @@ const getAgentConfig = (agentId: string) => {
                 defaultRole: "Patient Guide",
                 handler: (task: string, role: string) => createSupportbot({ productDescription: task, chatbotRole: role }),
             };
+        case 'agent-generic':
+             return {
+                isPersonaBuilder: false, // It's a different kind of builder
+                isGenericRunner: true,
+                title: (name: string) => `Run ${name}`,
+                description: "Define a persona for the agent and give it a task or question.",
+                inputLabel: "Your Message",
+                placeholder: "e.g., What are the top 5 benefits of a Mediterranean diet?",
+                personaLabel: "Agent's Role / Persona",
+                personaPlaceholder: "You are a world-renowned nutritionist and health expert.",
+                roles: [],
+                defaultRole: "",
+                handler: async (task: string, persona: string, agent: Agent) => {
+                    const agentsForFlow = [{ name: agent.name, role: persona, objectives: persona }];
+                    return await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
+                }
+            };
         default:
             return {
                 isPersonaBuilder: false,
-                title: (name: string) => `Run Agent: ${name}`,
+                isGenericRunner: false,
+                title: (name:string) => `Run Agent: ${name}`,
                 description: "Provide a task for the agent to perform.",
                 inputLabel: "Task",
                 placeholder: "e.g., Write a blog post about the benefits of AI.",
@@ -98,7 +115,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     toast({ title: "Agent started", description: `${agent.name} is on the job.` });
 
     try {
-      const response = await config.handler(task, selectedRole, agent);
+      const response = await (config as any).handler(task, selectedRole, agent);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -155,6 +172,19 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                         <p className="text-sm text-muted-foreground mt-1">{agent.role}</p>
                     </div>
                 </div>
+                
+                {(config as any).isGenericRunner && (
+                   <div className="space-y-2">
+                        <Label htmlFor="agent-persona" className="font-semibold">{(config as any).personaLabel}</Label>
+                        <Textarea 
+                            id="agent-persona"
+                            value={selectedRole}
+                            onChange={(e) => setSelectedRole(e.target.value)}
+                            placeholder={(config as any).personaPlaceholder}
+                            className="min-h-[100px]"
+                        />
+                    </div>
+                )}
 
                 {config.isPersonaBuilder && (
                   <div className="space-y-2">

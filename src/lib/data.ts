@@ -100,6 +100,15 @@ export const INITIAL_AGENTS: Agent[] = [
     tools: [],
   },
   {
+    id: 'agent-generic',
+    name: 'Generic Agent',
+    role: 'Your configurable, on-the-fly conversational assistant.',
+    objectives: 'Assumes any persona or expertise defined by the user to answer questions and perform conversational tasks.',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-generic')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-generic')?.imageHint || '',
+    tools: [],
+  },
+  {
     id: 'agent-lq',
     name: 'Lead Qualification Bot',
     role: 'Generates a chatbot persona for qualifying leads.',

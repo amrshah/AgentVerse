@@ -35,6 +35,12 @@
       "description": "Avatar for a technical support chatbot agent",
       "imageUrl": "https://images.unsplash.com/photo-1579566346927-c62aa3d9992b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWZlJTIwYnVveXxlbnwwfHx8fDE3NjQ4NzE0MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "life buoy"
+    },
+    {
+      "id": "agent-generic",
+      "description": "Avatar for a generic, configurable agent",
+      "imageUrl": "https://images.unsplash.com/photo-1518825865525-27a38c234583?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGZhY2V8ZW58MHx8fHwxNzY1MzAxNTc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract face"
     }
   ]
 }

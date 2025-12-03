@@ -13,6 +13,12 @@ export type OrchestrationPreset = {
 // Core agents for the new daily workflow
 export const CORE_AGENTS: Pick<Agent, 'name' | 'role' | 'objectives' | 'id'>[] = [
   {
+    id: 'agent-generic',
+    name: 'Generic Agent',
+    role: 'Your configurable, on-the-fly conversational assistant.',
+    objectives: 'Assumes any persona or expertise defined by the user to answer questions and perform conversational tasks.'
+  },
+  {
     id: 'agent-ceo',
     name: 'CEO & Strategy Agent',
     role: 'Your strategic thought partner for high-level planning and decision-making.',
