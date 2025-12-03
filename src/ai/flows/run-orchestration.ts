@@ -43,9 +43,9 @@ const prompt = ai.definePrompt({
   name: 'runOrchestrationPrompt',
   input: {schema: RunOrchestrationInputSchema},
   output: {schema: RunOrchestrationOutputSchema},
-  prompt: `You are a master orchestrator of AI agents. You will be given a team of agents, their roles, and their objectives, along with an overall task. Your job is to simulate the collaboration of these agents and produce a final result that reflects their combined efforts.
+  prompt: `You are a master orchestrator of AI agents. Your job is to create a plan to accomplish a given task and then orchestrate a team of AI agents to execute that plan.
 
-The output should be a plausible result of their collaboration, formatted in Markdown.
+First, you will be given a team of agents, their roles, and their objectives, along with an overall task.
 
 Team: {{{teamName}}}
 Task: {{{task}}}
@@ -57,7 +57,11 @@ Here are the agents in the team:
   Objectives: {{{this.objectives}}}
 {{/each}}
 
-Based on this information, generate the final result of their work. For example, if there's a researcher and a writer, the output should be the article they produced.
+Based on this information, you must first create a step-by-step execution plan. The plan should be clear, logical, and delegate tasks to the most appropriate agent(s).
+
+Then, you must simulate the execution of this plan, showing the collaboration between the agents. The final output should be the result of the completed task, formatted in Markdown. For example, if the task is to write an article, the final output should be the article itself, not the plan. The plan is your internal thought process.
+
+Generate the final result of their work.
 `,
 });
 
