@@ -98,4 +98,14 @@ export const INITIAL_AGENTS: Agent[] = [
     avatarHint: PlaceHolderImages.find(p => p.id === 'agent-4')?.imageHint || '',
     tools: [],
   },
+  {
+    id: 'agent-cb',
+    name: 'Chat Bot Builder',
+    role: 'Generates conversational AI bots',
+    objectives: 'Create a persona and script for a lead qualification chatbot based on a business description.',
+    constraints: 'The chatbot script should be friendly, concise, and designed to gather key information from potential customers.',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-cb')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-cb')?.imageHint || '',
+    tools: [],
+  }
 ];
