@@ -22,6 +22,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 type AgentRunnerProps = {
   agent: Agent;
@@ -32,18 +34,20 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<string | object | null>(null);
   const [task, setTask] = useState("");
+  const [chatbotRole, setChatbotRole] = useState("Friendly Assistant");
   const { toast } = useToast();
 
   const isChatbotPersonaBuilder = agent.id === 'agent-cb';
   const title = isChatbotPersonaBuilder ? `Configure ${agent.name}` : `Run Agent: ${agent.name}`;
   const description = isChatbotPersonaBuilder 
-    ? "Provide a description of your business to generate a lead qualification chatbot persona."
+    ? "Provide a description of your business and select a role to generate a lead qualification chatbot persona."
     : "Provide a task for the agent to perform.";
   const inputLabel = isChatbotPersonaBuilder ? "Business Description" : "Task";
   const placeholder = isChatbotPersonaBuilder
     ? "e.g., A real estate agency specializing in luxury downtown condos."
     : "e.g., Write a blog post about the benefits of AI.";
 
+  const chatbotRoles = ["Friendly Assistant", "Professional Consultant", "Eager Newcomer", "Knowledgeable Expert", "Concise & To-the-point"];
 
   const handleRun = async () => {
     if (!task) {
@@ -62,7 +66,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     try {
       let response: any;
       if (isChatbotPersonaBuilder) {
-        response = await createChatbot({ businessDescription: task });
+        response = await createChatbot({ businessDescription: task, chatbotRole });
       } else {
         const agentsForFlow = [{ name: agent.name, role: agent.role, objectives: agent.objectives }];
         response = await runOrchestration({ teamName: agent.name, agents: agentsForFlow, task });
@@ -122,8 +126,25 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                         <p className="text-sm text-muted-foreground mt-1">{agent.role}</p>
                     </div>
                 </div>
+
+                {isChatbotPersonaBuilder && (
+                  <div className="space-y-2">
+                    <Label htmlFor="chatbot-role">Select Role</Label>
+                    <Select value={chatbotRole} onValueChange={setChatbotRole}>
+                      <SelectTrigger id="chatbot-role">
+                        <SelectValue placeholder="Select a role for the chatbot..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chatbotRoles.map(role => (
+                          <SelectItem key={role} value={role}>{role}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                  <div className="space-y-2">
-                    <label htmlFor="task" className="font-semibold text-base">{inputLabel}</label>
+                    <Label htmlFor="task" className="font-semibold">{inputLabel}</Label>
                     <Textarea 
                         id="task"
                         value={task}

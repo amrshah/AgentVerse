@@ -15,6 +15,9 @@ const CreateChatbotInputSchema = z.object({
   businessDescription: z
     .string()
     .describe('A description of the business and its services for which the chatbot is being created.'),
+  chatbotRole: z
+    .string()
+    .describe('The desired role or personality for the chatbot (e.g., Friendly Assistant, Professional Consultant).'),
 });
 export type CreateChatbotInput = z.infer<typeof CreateChatbotInputSchema>;
 
@@ -38,17 +41,18 @@ const prompt = ai.definePrompt({
   name: 'createChatbotPrompt',
   input: {schema: CreateChatbotInputSchema},
   output: {schema: CreateChatbotOutputSchema},
-  prompt: `You are an expert at creating lead qualification chatbots. Based on the business description provided by the user, you will generate a complete chatbot persona.
+  prompt: `You are an expert at creating lead qualification chatbots. Based on the business description and desired chatbot role provided by the user, you will generate a complete chatbot persona.
 
 This persona should include:
-1.  A friendly and appropriate name for the chatbot.
-2.  A warm welcome message that introduces the bot and what it does.
+1.  A friendly and appropriate name for the chatbot that fits its role.
+2.  A warm welcome message that introduces the bot and what it does, matching the specified tone.
 3.  A series of 3-5 targeted questions to effectively qualify the lead. These questions should be relevant to the business services.
 4.  A closing message that thanks the user and clearly states the next steps.
 
 Business Description: {{{businessDescription}}}
+Chatbot Role/Tone: {{{chatbotRole}}}
 
-Generate the full chatbot persona based on this description.`,
+Generate the full chatbot persona based on this information.`,
 });
 
 const createChatbotFlow = ai.defineFlow(
