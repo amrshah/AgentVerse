@@ -100,12 +100,12 @@ export const INITIAL_AGENTS: Agent[] = [
     tools: [],
   },
   {
-    id: 'agent-generic',
-    name: 'Generic Agent',
+    id: 'agent-jack',
+    name: 'Jack of All Trades',
     role: 'Your configurable, on-the-fly conversational assistant.',
     objectives: 'Assumes any persona or expertise defined by the user to answer questions and perform conversational tasks.',
-    avatar: PlaceHolderImages.find(p => p.id === 'agent-generic')?.imageUrl || '',
-    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-generic')?.imageHint || '',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-jack')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-jack')?.imageHint || '',
     tools: [],
   },
   {
