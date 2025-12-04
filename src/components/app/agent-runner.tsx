@@ -18,6 +18,7 @@ import { Textarea } from "../ui/textarea";
 import { runAgent } from "@/ai/flows/run-agent-flow";
 import { createChatbot } from "@/ai/flows/create-chatbot-flow";
 import { createSupportbot } from "@/ai/flows/create-supportbot-flow";
+import { createSamContent } from "@/ai/flows/create-sam-content-flow";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
@@ -53,6 +54,18 @@ const getAgentConfig = (agentId: string) => {
                 defaultRole: "Patient Guide",
                 handler: (task: string, role: string) => createSupportbot({ productDescription: task, chatbotRole: role }),
             };
+        case 'agent-sam-writer':
+             return {
+                isPersonaBuilder: false,
+                isGenericRunner: false,
+                title: (name: string) => `Run ${name}`,
+                description: "Provide a topic and the agent will generate a high-quality blog post following the SAM Editorial Excellence Guidelines.",
+                inputLabel: "Blog Post Topic",
+                placeholder: "e.g., The Future of AI in Digital Marketing",
+                roles: [],
+                defaultRole: "",
+                handler: async (task: string) => createSamContent({ topic: task }),
+            };
         case 'agent-jack':
              return {
                 isPersonaBuilder: false, // It's a different kind of builder
@@ -67,7 +80,8 @@ const getAgentConfig = (agentId: string) => {
                 defaultRole: "",
                 handler: async (task: string, persona: string, agent: Agent) => {
                     const agentForFlow = { name: agent.name, role: persona, objectives: persona };
-                    return await runAgent({ agent: agentForFlow, task });
+                    const response = await runAgent({ agent: agentForFlow, task });
+                    return { result: response.result }; // Ensure consistent output shape
                 }
             };
         default:
@@ -82,7 +96,8 @@ const getAgentConfig = (agentId: string) => {
                 defaultRole: "",
                 handler: async (task: string, role: string, agent: Agent) => {
                     const agentForFlow = { name: agent.name, role: agent.role, objectives: agent.objectives };
-                    return await runAgent({ agent: agentForFlow, task });
+                    const response = await runAgent({ agent: agentForFlow, task });
+                    return { result: response.result }; // Ensure consistent output shape
                 }
             };
     }
@@ -139,12 +154,14 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     }, 300);
   }
 
-  const resultString = typeof result === 'string' 
-      ? result 
-      : result && 'result' in result ? (result as any).result
-      : result ? JSON.stringify(result, null, 2) : "";
+  const resultString = 
+      result && 'blogPost' in result ? (result as any).blogPost
+    : result && 'result' in result ? (result as any).result
+    : typeof result === 'string' ? result
+    : result ? JSON.stringify(result, null, 2)
+    : "";
 
-  const resultLanguage = typeof result === 'object' && !(result && 'result' in result) ? 'json' : undefined;
+  const resultLanguage = typeof result === 'object' && !('result' in result) && !('blogPost' in result) ? 'json' : undefined;
 
   const handleOpenInNewTab = () => {
     if (!resultString) return;
