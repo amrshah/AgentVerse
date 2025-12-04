@@ -35,6 +35,7 @@ const getAgentConfig = (agentId: string) => {
         case 'agent-lq':
             return {
                 isPersonaBuilder: true,
+                isGenericRunner: false,
                 title: (name: string) => `Configure ${name}`,
                 description: "Provide a description of your business and select a role to generate a lead qualification chatbot persona.",
                 inputLabel: "Business Description",
@@ -46,6 +47,7 @@ const getAgentConfig = (agentId: string) => {
         case 'agent-ts':
             return {
                 isPersonaBuilder: true,
+                isGenericRunner: false,
                 title: (name: string) => `Configure ${name}`,
                 description: "Provide a description of your product or service to generate a technical support bot persona.",
                 inputLabel: "Product/Service Description",
@@ -68,7 +70,7 @@ const getAgentConfig = (agentId: string) => {
             };
         case 'agent-jack':
              return {
-                isPersonaBuilder: false, // It's a different kind of builder
+                isPersonaBuilder: false,
                 isGenericRunner: true,
                 title: (name: string) => `Run ${name}`,
                 description: "Define a persona for the agent and give it a task or question.",
@@ -155,13 +157,13 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
   }
 
   const resultString = 
-      result && 'blogPost' in result ? (result as any).blogPost
-    : result && 'result' in result ? (result as any).result
+      result && typeof result === 'object' && 'blogPost' in result ? (result as any).blogPost
+    : result && typeof result === 'object' && 'result' in result ? (result as any).result
     : typeof result === 'string' ? result
     : result ? JSON.stringify(result, null, 2)
     : "";
 
-  const resultLanguage = typeof result === 'object' && !('result' in result) && !('blogPost' in result) ? 'json' : undefined;
+  const resultLanguage = typeof result === 'object' && result !== null && !('result' in result) && !('blogPost' in result) ? 'json' : undefined;
 
   const handleOpenInNewTab = () => {
     if (!resultString) return;
