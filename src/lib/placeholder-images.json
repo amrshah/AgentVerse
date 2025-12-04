@@ -43,8 +43,8 @@
       "imageHint": "abstract face"
     },
     {
-      "id": "agent-sam-writer",
-      "description": "Avatar for SAM Content Writer",
+      "id": "agent-silver-scribe",
+      "description": "Avatar for Silver Scribe, a content writer agent",
       "imageUrl": "https://images.unsplash.com/photo-1588049247009-17a474607d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb3VudGFpbiUyMHBlbnxlbnwwfHx8fDE3NjU1Mjk1Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fountain pen"
     }

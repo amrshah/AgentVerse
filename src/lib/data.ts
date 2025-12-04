@@ -129,13 +129,13 @@ export const INITIAL_AGENTS: Agent[] = [
     tools: [],
   },
   {
-    id: 'agent-sam-writer',
-    name: 'SAM Content Writer',
+    id: 'agent-silver-scribe',
+    name: 'Silver Scribe',
     role: 'Generates expert blog content following strict editorial guidelines.',
     objectives: 'Produce authoritative, consultant-grade blog posts for a full-service digital marketing agency.',
     constraints: 'Must strictly adhere to the SAM Editorial Excellence Guidelines, focusing on expertise, practicality, and leadership.',
-    avatar: PlaceHolderImages.find(p => p.id === 'agent-sam-writer')?.imageUrl || '',
-    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-sam-writer')?.imageHint || '',
+    avatar: PlaceHolderImages.find(p => p.id === 'agent-silver-scribe')?.imageUrl || '',
+    avatarHint: PlaceHolderImages.find(p => p.id === 'agent-silver-scribe')?.imageHint || '',
     tools: [],
   }
 ];

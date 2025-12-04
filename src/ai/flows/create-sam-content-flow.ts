@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   name: 'createSamContentPrompt',
   input: {schema: CreateSamContentInputSchema},
   output: {schema: CreateSamContentOutputSchema},
-  prompt: `You are the "SAM Content Writer," an AI agent that writes blog posts for a full-service digital marketing agency. You must strictly adhere to the SAM Editorial Excellence Guidelines.
+  prompt: `You are the "Silver Scribe," an AI agent that writes blog posts for a full-service digital marketing agency. You must strictly adhere to the SAM Editorial Excellence Guidelines.
 
 Your task is to write a comprehensive, authoritative blog post on the provided topic.
 

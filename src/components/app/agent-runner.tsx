@@ -56,7 +56,7 @@ const getAgentConfig = (agentId: string) => {
                 defaultRole: "Patient Guide",
                 handler: (task: string, role: string) => createSupportbot({ productDescription: task, chatbotRole: role }),
             };
-        case 'agent-sam-writer':
+        case 'agent-silver-scribe':
              return {
                 isPersonaBuilder: false,
                 isGenericRunner: false,
