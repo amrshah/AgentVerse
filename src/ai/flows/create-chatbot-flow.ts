@@ -23,7 +23,7 @@ export type CreateChatbotInput = z.infer<typeof CreateChatbotInputSchema>;
 
 const ChatbotPersonaSchema = z.object({
     name: z.string().describe("A friendly and appropriate name for the chatbot."),
-    welcomeMessage: z.string().describe("A warm welcome message that introduces the bot and the business."),
+    welcomeMessage: z.string().describe("A warm welcome message that introduces the bot's purpose and what it can help with."),
     qualifyingQuestions: z.array(z.string()).describe("A series of 3-5 questions to qualify the lead (e.g., asking about budget, timeline, needs)."),
     closingMessage: z.string().describe("A closing message to thank the user and explain the next steps (e.g., 'Thanks! A specialist will contact you shortly.').")
 });
@@ -45,7 +45,7 @@ const prompt = ai.definePrompt({
 
 This persona should include:
 1.  A friendly and appropriate name for the chatbot that fits its role.
-2.  A warm welcome message that introduces the bot and what it does, matching the specified tone.
+2.  A warm welcome message that introduces what the bot does and how it can help. **Important**: Do not use a placeholder for the business name (e.g., "[Your Company]"). The message should be generic enough to be used by any business.
 3.  A series of 3-5 targeted questions to effectively qualify the lead. These questions should be relevant to the business services.
 4.  A closing message that thanks the user and clearly states the next steps.
 
