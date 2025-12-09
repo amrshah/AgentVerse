@@ -50,7 +50,7 @@ export const AVAILABLE_TOOLS: Tool[] = [
         },
         content: {
           type: 'string',
-          description: 'The content to write to the file (only for write operation).',
+          description: 'The contents to write to the file (only for write operation).',
         },
       },
       required: ['operation', 'path'],
