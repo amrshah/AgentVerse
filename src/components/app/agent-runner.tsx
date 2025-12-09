@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Loader2, Sparkles, Copy, ExternalLink, Bot, Send } from "lucide-react";
+import { Play, Loader2, Sparkles, Copy, ExternalLink, Bot, Send, Code } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import {
@@ -29,6 +29,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
+import EmbedCodeDialog from "./embed-code-dialog";
 
 type AgentRunnerProps = {
   agent: Agent;
@@ -127,6 +128,8 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userMessage, setUserMessage] = useState("");
   const [isChatting, setIsChatting] = useState(false);
+  const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
+  const [embedCode, setEmbedCode] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
   const config = getAgentConfig(agent.id);
@@ -211,6 +214,41 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     }
   }
 
+  const handleOpenEmbedDialog = () => {
+    const persona = result?.chatbotPersona || result?.supportbotPersona;
+    if (!persona) return;
+
+    const personaString = JSON.stringify(persona);
+    const encodedPersona = Buffer.from(personaString).toString('base64');
+    const embedUrl = `${window.location.origin}/bot/${encodedPersona}`;
+    const code = `<iframe
+  src="${embedUrl}"
+  width="100%"
+  height="100%"
+  style="border:none; min-width: 400px; min-height: 600px;"
+  title="${persona.name || 'Chatbot'}"
+></iframe>`;
+
+    // A more complete script tag to handle the widget logic
+    const fullScript = `<div id="agentverse-bot-container" style="position: fixed; bottom: 0; right: 0; width: 400px; height: 600px; z-index: 9999;"></div>
+<script>
+    (function() {
+        const container = document.getElementById('agentverse-bot-container');
+        const iframe = document.createElement('iframe');
+        iframe.src = "${embedUrl}";
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.title = "${persona.name || 'Chatbot'}";
+        container.appendChild(iframe);
+    })();
+</script>
+    `;
+
+    setEmbedCode(fullScript);
+    setIsEmbedDialogOpen(true);
+  };
+
   const handleClose = () => {
     setIsOpen(false);
     setTimeout(() => {
@@ -230,7 +268,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     : result ? JSON.stringify(result, null, 2)
     : "";
 
-  const resultLanguage = typeof result === 'object' && result !== null && !('result' in result) && !('blogPost' in result) ? 'json' : undefined;
+  const resultLanguage = typeof result === 'object' && result !== null && !('result' in result) && !('blogPost' in result) && result !== null ? 'json' : undefined;
 
   const handleOpenInNewTab = () => {
     if (!resultString) return;
@@ -339,14 +377,22 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
             <div className="flex-grow bg-muted/50 rounded-lg p-4 flex flex-col min-h-[400px]">
                 <div className="flex items-center justify-between mb-2 flex-shrink-0">
                     <h3 className="font-semibold text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
-                    {result && !isLoading && !config.isChatBot && (
+                    {result && !isLoading && (
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => navigator.clipboard.writeText(resultString)}>
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                             <Button variant="ghost" size="icon" onClick={handleOpenInNewTab}>
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
+                            {config.isChatBot ? (
+                                <Button variant="outline" size="sm" onClick={handleOpenEmbedDialog}>
+                                    <Code className="mr-2 h-4 w-4" /> Embed
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button variant="ghost" size="icon" onClick={() => navigator.clipboard.writeText(resultString)}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={handleOpenInNewTab}>
+                                        <ExternalLink className="h-4 w-4" />
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -440,6 +486,11 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <EmbedCodeDialog 
+        isOpen={isEmbedDialogOpen}
+        onOpenChange={setIsEmbedDialogOpen}
+        embedCode={embedCode}
+      />
     </>
   );
 }
