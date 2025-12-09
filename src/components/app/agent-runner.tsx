@@ -224,8 +224,8 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
   }
 
   const resultString = 
-      result && typeof result === 'object' && 'blogPost' in result ? (result as any).blogPost
-    : result && typeof result === 'object' && 'result' in result ? (result as any).result
+      result && typeof result === 'object' && result !== null && 'blogPost' in result ? (result as any).blogPost
+    : result && typeof result === 'object' && result !== null && 'result' in result ? (result as any).result
     : typeof result === 'string' ? result
     : result ? JSON.stringify(result, null, 2)
     : "";
