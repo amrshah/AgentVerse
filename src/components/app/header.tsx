@@ -32,6 +32,9 @@ export default function Header({ availableTools, onAgentCreate }: HeaderProps) {
             <Button asChild variant={pathname === '/' ? 'secondary' : 'ghost'} size="sm">
                 <Link href="/">Orchestration</Link>
             </Button>
+            <Button asChild variant={pathname === '/bot-builder' ? 'secondary' : 'ghost'} size="sm">
+                <Link href="/bot-builder">Bot Builder</Link>
+            </Button>
             <Button asChild variant={pathname === '/workflows' ? 'secondary' : 'ghost'} size="sm">
                 <Link href="/workflows">Workflows</Link>
             </Button>
