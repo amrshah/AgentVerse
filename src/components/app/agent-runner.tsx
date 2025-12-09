@@ -230,7 +230,7 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
     : result ? JSON.stringify(result, null, 2)
     : "";
 
-  const resultLanguage = typeof result === 'object' && result !== null && !('result' in result) && !('blogPost' in result) && result !== null ? 'json' : undefined;
+  const resultLanguage = typeof result === 'object' && result && !('result' in result) && !('blogPost' in result) ? 'json' : undefined;
 
   const handleOpenInNewTab = () => {
     if (!resultString) return;
@@ -405,11 +405,11 @@ export function AgentRunner({ agent }: AgentRunnerProps) {
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
-                                    code({ node, inline, className, children, ...props }) {
+                                    code({ node, className, children, ...props }) {
                                         const match = /language-(\w+)/.exec(className || '');
                                         const lang = resultLanguage || (match ? match[1] : '');
                                         const codeString = String(children).replace(/\n$/, '');
-                                        return !inline ? (
+                                        return match ? (
                                             <CodeBlock
                                                 language={lang || 'text'}
                                                 value={codeString}

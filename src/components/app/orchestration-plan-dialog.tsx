@@ -266,10 +266,10 @@ export default function OrchestrationPlanDialog({
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        code({ node, inline, className, children, ...props }) {
+                                        code({ node, className, children, ...props }) {
                                             const match = /language-(\w+)/.exec(className || '');
                                             const codeString = String(children).replace(/\n$/, '');
-                                            return !inline && match ? (
+                                            return match ? (
                                                 <CodeBlock
                                                     language={match[1]}
                                                     value={codeString}
@@ -306,3 +306,5 @@ export default function OrchestrationPlanDialog({
     </Dialog>
   );
 }
+
+    
