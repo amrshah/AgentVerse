@@ -31,7 +31,7 @@ export default function BotBuilderDashboard({ agents }: BotBuilderDashboardProps
         <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight">Bot Builder</h1>
             <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">
-                Create specialized chatbots for your business. Generate a complete persona and script, then get ready to integrate it into your website.
+                Create specialized chatbots for your business. Generate a complete persona and script, then chat with your new bot to test it out.
             </p>
         </div>
 
