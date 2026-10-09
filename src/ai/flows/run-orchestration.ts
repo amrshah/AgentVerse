@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { clientProfiles, orchestrations, subscriptions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { getCurrentSession } from '@/lib/session';
 
 function cleanMarkdownResult(raw: string): string {
   if (!raw) return '';
@@ -75,8 +76,24 @@ export type RunOrchestrationOutput = z.infer<
 export async function runOrchestration(
   input: RunOrchestrationInput
 ): Promise<RunOrchestrationOutput> {
-  const userId = input.userId || 'user-agency-demo';
+  const session = await getCurrentSession();
+  const userId = session?.user?.id || input.userId || 'user-agency-demo';
   
+  // 0. Enforce Subscription Quota Wall before invoking AI models
+  try {
+    const sub = db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).get();
+    if (sub && sub.currentUsage >= sub.monthlyQuota) {
+      throw new Error(
+        `AI Quota Exceeded: Your workspace (${sub.plan.toUpperCase()} plan) has reached its monthly limit of ${sub.monthlyQuota} runs. Please upgrade your subscription in the Admin portal to continue.`
+      );
+    }
+  } catch (quotaErr: any) {
+    if (quotaErr.message.includes('AI Quota Exceeded')) {
+      throw quotaErr;
+    }
+    console.warn('Could not check quota:', quotaErr);
+  }
+
   // 1. Fetch Client Profile if specified
   let clientProfile: any = null;
   if (input.clientProfileId) {

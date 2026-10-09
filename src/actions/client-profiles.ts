@@ -2,8 +2,9 @@
 
 import { db } from '@/db';
 import { clientProfiles } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { getCurrentSession } from '@/lib/session';
 
 export type ClientProfileData = {
   name: string;
@@ -19,12 +20,15 @@ export type ClientProfileData = {
 
 const DEFAULT_USER_ID = 'user-agency-demo';
 
-export async function getClientProfiles(userId: string = DEFAULT_USER_ID) {
+export async function getClientProfiles(targetUserId?: string) {
   try {
+    const session = await getCurrentSession();
+    const effectiveUserId = session?.user?.id || targetUserId || DEFAULT_USER_ID;
+
     const profiles = db
       .select()
       .from(clientProfiles)
-      .where(eq(clientProfiles.userId, userId))
+      .where(eq(clientProfiles.userId, effectiveUserId))
       .orderBy(desc(clientProfiles.isDefault), desc(clientProfiles.createdAt))
       .all();
     return profiles;
@@ -48,16 +52,16 @@ export async function getClientProfileById(id: string) {
   }
 }
 
-export async function createClientProfile(
-  data: ClientProfileData,
-  userId: string = DEFAULT_USER_ID
-) {
+export async function createClientProfile(data: ClientProfileData) {
   try {
+    const session = await getCurrentSession();
+    const effectiveUserId = session?.user?.id || DEFAULT_USER_ID;
+
     const id = `client-${Date.now()}`;
     db.insert(clientProfiles)
       .values({
         id,
-        userId,
+        userId: effectiveUserId,
         name: data.name,
         website: data.website || null,
         industry: data.industry || null,
@@ -70,6 +74,7 @@ export async function createClientProfile(
       })
       .run();
 
+    revalidatePath('/clients');
     revalidatePath('/');
     return { success: true, id };
   } catch (error: any) {
@@ -80,6 +85,16 @@ export async function createClientProfile(
 
 export async function updateClientProfile(id: string, data: Partial<ClientProfileData>) {
   try {
+    const session = await getCurrentSession();
+    const profile = db.select().from(clientProfiles).where(eq(clientProfiles.id, id)).get();
+    if (!profile) {
+      return { success: false, error: 'Client profile not found.' };
+    }
+
+    if (session?.user && profile.userId !== session.user.id && session.user.role !== 'admin') {
+      return { success: false, error: 'Forbidden: You do not own this client profile.' };
+    }
+
     db.update(clientProfiles)
       .set({
         ...data,
@@ -88,6 +103,7 @@ export async function updateClientProfile(id: string, data: Partial<ClientProfil
       .where(eq(clientProfiles.id, id))
       .run();
 
+    revalidatePath('/clients');
     revalidatePath('/');
     return { success: true };
   } catch (error: any) {
@@ -98,7 +114,18 @@ export async function updateClientProfile(id: string, data: Partial<ClientProfil
 
 export async function deleteClientProfile(id: string) {
   try {
+    const session = await getCurrentSession();
+    const profile = db.select().from(clientProfiles).where(eq(clientProfiles.id, id)).get();
+    if (!profile) {
+      return { success: false, error: 'Client profile not found.' };
+    }
+
+    if (session?.user && profile.userId !== session.user.id && session.user.role !== 'admin') {
+      return { success: false, error: 'Forbidden: You do not have permission to delete this profile.' };
+    }
+
     db.delete(clientProfiles).where(eq(clientProfiles.id, id)).run();
+    revalidatePath('/clients');
     revalidatePath('/');
     return { success: true };
   } catch (error: any) {

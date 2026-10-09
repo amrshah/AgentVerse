@@ -1,8 +1,17 @@
 import ClientProfilesDashboard from "@/components/app/client-profiles-dashboard";
 import Header from "@/components/app/header";
-import { AVAILABLE_TOOLS } from "@/lib/data";
+import { getCurrentSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-export default function ClientsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ClientsPage() {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login?callbackUrl=/clients");
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
