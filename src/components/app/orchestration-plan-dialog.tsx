@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,20 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import type { Agent } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, Loader2, Sparkles, Wand2, Copy, ExternalLink } from "lucide-react";
+import { Bot, Loader2, Sparkles, Wand2, Copy, ExternalLink, Building2, UserCheck, Shield } from "lucide-react";
 import { runOrchestration } from "@/ai/flows/run-orchestration";
+import { getClientProfiles } from "@/actions/client-profiles";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "../ui/textarea";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -39,7 +48,23 @@ export default function OrchestrationPlanDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
   const [task, setTask] = useState(initialTask);
+  const [clients, setClients] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("none");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      getClientProfiles().then((data) => {
+        setClients(data);
+        const defaultClient = data.find((c) => c.isDefault);
+        if (defaultClient && selectedClientId === "none") {
+          setSelectedClientId(defaultClient.id);
+        }
+      });
+    }
+  }, [isOpen]);
+
+  const selectedClient = clients.find((c) => c.id === selectedClientId);
 
   const handleConfirmRun = async () => {
     if (teamAgents.length === 0) {
@@ -55,13 +80,26 @@ export default function OrchestrationPlanDialog({
     setResult("");
     toast({
       title: "Orchestration Started",
-      description: `Running team "${teamName}" with ${teamAgents.length} agent(s).`,
+      description: `Running team "${teamName}" with ${teamAgents.length} agent(s)${selectedClient ? ` for ${selectedClient.name}` : ''}.`,
     });
 
     try {
       const agentsForFlow = teamAgents.map(a => ({ name: a.name, role: a.role, objectives: a.objectives }));
-      const response = await runOrchestration({ teamName, agents: agentsForFlow, task });
-      setResult(response.result);
+      const response = await runOrchestration({
+        teamName,
+        agents: agentsForFlow,
+        task,
+        clientProfileId: selectedClientId === "none" ? undefined : selectedClientId,
+      });
+      let displayResult = response.result || "";
+      const codeMatch = displayResult.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+      if (codeMatch) displayResult = codeMatch[1].trim();
+      try {
+        const parsed = JSON.parse(displayResult);
+        if (parsed && typeof parsed.result === "string") displayResult = parsed.result;
+        else if (parsed && typeof parsed.response === "string") displayResult = parsed.response;
+      } catch {}
+      setResult(displayResult);
       toast({
         title: "Orchestration Complete",
         description: `Team "${teamName}" has finished its tasks.`,
@@ -223,14 +261,52 @@ export default function OrchestrationPlanDialog({
                 </div>
             </div>
             <div className="flex flex-col gap-4 min-h-[400px]">
+                {/* Client Brand Context Selector */}
+                <div className="space-y-1.5 p-3 rounded-lg border bg-card/60">
+                    <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
+                            <Building2 className="w-4 h-4 text-primary" />
+                            Client Brand Context
+                        </label>
+                        {selectedClient && (
+                            <Badge variant="outline" className="text-[11px] bg-primary/10 text-primary border-primary/20">
+                                {selectedClient.industry || 'Active Client'}
+                            </Badge>
+                        )}
+                    </div>
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                        <SelectTrigger className="w-full bg-background">
+                            <SelectValue placeholder="Select a Client Brand Context..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">🌐 Default / General (No Brand Context)</SelectItem>
+                            {clients.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                    🏢 {c.name} {c.isDefault ? '(Default)' : ''}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {selectedClient && (
+                        <div className="text-xs text-muted-foreground pt-1 space-y-1 bg-muted/40 p-2 rounded">
+                            {selectedClient.brandVoice && (
+                                <p><strong className="text-foreground">Tone:</strong> {selectedClient.brandVoice}</p>
+                            )}
+                            {selectedClient.targetAudience && (
+                                <p><strong className="text-foreground">Audience:</strong> {selectedClient.targetAudience}</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <div className="space-y-2 flex-shrink-0">
-                    <label htmlFor="task" className="font-semibold text-lg">Overall Task</label>
+                    <label htmlFor="task" className="font-semibold text-sm">Overall Task / Campaign Prompt</label>
                     <Textarea 
                         id="task"
                         value={task}
                         onChange={(e) => setTask(e.target.value)}
-                        placeholder="e.g., Create a marketing campaign for a new product"
-                        className="min-h-[100px]"
+                        placeholder="e.g., Create a high-converting landing page copy and social media rollout plan"
+                        className="min-h-[80px]"
                     />
                 </div>
                  <Button onClick={handleConfirmRun} disabled={isLoading} className="flex-shrink-0">
@@ -239,11 +315,18 @@ export default function OrchestrationPlanDialog({
                     ) : (
                     <Wand2 className="mr-2 h-4 w-4" />
                     )}
-                    Run Orchestration
+                    {selectedClient ? `Run for ${selectedClient.name}` : `Run Orchestration`}
                 </Button>
                 <div className="flex-grow bg-muted/50 rounded-lg p-4 flex flex-col min-h-0">
                     <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                        <h3 className="font-semibold text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Result</h3>
+                            {selectedClient && result && (
+                                <Badge variant="secondary" className="text-xs">
+                                    Brand: {selectedClient.name}
+                                </Badge>
+                            )}
+                        </div>
                         {result && !isLoading && (
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={handleCopyToClipboard}>

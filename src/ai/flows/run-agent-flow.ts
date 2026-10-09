@@ -8,14 +8,15 @@
  * - RunAgentOutput - The return type for the runAgent function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const AgentSchema = z.object({
   name: z.string().describe('The name of the agent.'),
   role: z.string().describe('The role of the agent.'),
   objectives: z.string().describe('The objectives of the agent.'),
 });
+export type Agent = z.infer<typeof AgentSchema>;
 
 const RunAgentInputSchema = z.object({
   agent: AgentSchema.describe('The agent that will perform the task.'),
@@ -36,22 +37,6 @@ export async function runAgent(
   return runAgentFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'runAgentPrompt',
-  input: {schema: RunAgentInputSchema},
-  output: {schema: RunAgentOutputSchema},
-  prompt: `You are an AI agent executor. You will receive the profile of an agent and a task to perform. Your job is to act as that agent and execute the task.
-
-Agent Name: {{{agent.name}}}
-Agent Role: {{{agent.role}}}
-Agent Objectives: {{{agent.objectives}}}
-
-Task: {{{task}}}
-
-Based on this information, perform the task as the specified agent and return the result in Markdown format.
-`,
-});
-
 const runAgentFlow = ai.defineFlow(
   {
     name: 'runAgentFlow',
@@ -59,7 +44,29 @@ const runAgentFlow = ai.defineFlow(
     outputSchema: RunAgentOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const promptText = `You are an AI agent. Act as this agent and execute the task.
+
+Agent Name: ${input.agent.name}
+Agent Role: ${input.agent.role}
+Agent Objectives: ${input.agent.objectives}
+
+Task:
+${input.task}
+
+Perform your part thoroughly and return your response in clean, professional Markdown.`;
+
+    const response = await ai.generate({
+      prompt: promptText,
+    });
+
+    let result = response.text || '';
+    const codeMatch = result.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    if (codeMatch) result = codeMatch[1].trim();
+    try {
+      const parsed = JSON.parse(result);
+      if (parsed && typeof parsed.result === 'string') result = parsed.result;
+    } catch {}
+
+    return { result };
   }
 );

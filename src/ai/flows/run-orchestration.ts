@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -9,9 +8,43 @@
  * - RunOrchestrationOutput - The return type for the runOrchestration function.
  */
 
-import {ai} from '@/ai/genkit';
-import {runAgent} from '@/ai/flows/run-agent-flow';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { runAgent } from '@/ai/flows/run-agent-flow';
+import { z } from 'genkit';
+import { db } from '@/db';
+import { clientProfiles, orchestrations, subscriptions } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+function cleanMarkdownResult(raw: string): string {
+  if (!raw) return '';
+  let text = raw.trim();
+
+  // Strip wrapping markdown code blocks if the whole output is fenced in ```json or ```
+  const codeBlockMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim();
+  }
+
+  // If text is a JSON object with a "result" field or similar
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === 'object') {
+      if (typeof parsed.result === 'string') {
+        return cleanMarkdownResult(parsed.result);
+      }
+      if (typeof parsed.response === 'string') {
+        return cleanMarkdownResult(parsed.response);
+      }
+      if (typeof parsed.content === 'string') {
+        return cleanMarkdownResult(parsed.content);
+      }
+    }
+  } catch {
+    // Not raw JSON string, return text as is
+  }
+
+  return text;
+}
 
 const AgentSchema = z.object({
   name: z.string().describe('The name of the agent.'),
@@ -24,6 +57,8 @@ const RunOrchestrationInputSchema = z.object({
   teamName: z.string().describe('The name of the team.'),
   agents: z.array(AgentSchema).describe('The agents in the team.'),
   task: z.string().describe('The overall task for the team.'),
+  clientProfileId: z.string().optional().describe('Optional client brand profile ID to inject context from.'),
+  userId: z.string().optional().describe('User / Tenant ID.'),
 });
 export type RunOrchestrationInput = z.infer<typeof RunOrchestrationInputSchema>;
 
@@ -31,6 +66,7 @@ const RunOrchestrationOutputSchema = z.object({
   result: z
     .string()
     .describe('The final result of the orchestration, formatted as Markdown.'),
+  clientName: z.string().optional(),
 });
 export type RunOrchestrationOutput = z.infer<
   typeof RunOrchestrationOutputSchema
@@ -39,56 +75,117 @@ export type RunOrchestrationOutput = z.infer<
 export async function runOrchestration(
   input: RunOrchestrationInput
 ): Promise<RunOrchestrationOutput> {
-  // This is a workaround to give the tool access to the full agent list from the input.
-  const runAgentTool = ai.defineTool(
-    {
-      name: 'runAgent',
-      description: 'Delegates a specific task to a designated agent in the team.',
-      inputSchema: z.object({
-        agentName: z.string().describe("The name of the agent to run, which must be one of the available agents in the team."),
-        task: z.string().describe("The specific task for the agent to perform."),
-      }),
-      outputSchema: z.string().describe("The result of the agent's work."),
-    },
-    async ({ agentName, task }) => {
-      // Find the full agent profile from the input agents list
-      const agent = input.agents.find(a => a.name === agentName);
-      if (!agent) {
-        return `Error: Agent "${agentName}" not found in the team.`;
-      }
-      const response = await runAgent({ agent, task });
-      return response.result;
+  const userId = input.userId || 'user-agency-demo';
+  
+  // 1. Fetch Client Profile if specified
+  let clientProfile: any = null;
+  if (input.clientProfileId) {
+    try {
+      clientProfile = db
+        .select()
+        .from(clientProfiles)
+        .where(eq(clientProfiles.id, input.clientProfileId))
+        .get();
+    } catch (e) {
+      console.warn('Could not fetch client profile:', e);
     }
-  );
+  }
 
-  const runOrchestrationPrompt = ai.definePrompt({
-    name: 'runOrchestrationPrompt',
-    input: {schema: RunOrchestrationInputSchema},
-    output: {schema: RunOrchestrationOutputSchema},
-    tools: [runAgentTool],
-    prompt: `You are a master orchestrator of AI agents. Your job is to create a plan to accomplish a given task and then execute that plan by orchestrating a team of AI agents.
+  // 2. Build Brand Context Prompt block
+  let brandContextPrompt = '';
+  if (clientProfile) {
+    brandContextPrompt = `\n\n[CLIENT BRAND CONTEXT - STRICT ADHERENCE REQUIRED]
+- Client / Brand Name: ${clientProfile.name}
+${clientProfile.industry ? `- Industry: ${clientProfile.industry}` : ''}
+${clientProfile.targetAudience ? `- Target Audience: ${clientProfile.targetAudience}` : ''}
+${clientProfile.brandVoice ? `- Brand Voice & Tone: ${clientProfile.brandVoice}` : ''}
+${clientProfile.contentGuidelines ? `- Content Guidelines & Rules: ${clientProfile.contentGuidelines}` : ''}
+${clientProfile.keywords ? `- Target Keywords to include: ${clientProfile.keywords}` : ''}
+${clientProfile.knowledgeContext ? `- Background Knowledge / Facts: ${clientProfile.knowledgeContext}` : ''}
+All generated outputs must strictly align with this client's brand voice, target audience, and guidelines.\n`;
+  }
 
-First, you will be given a team of agents, their roles, and their objectives, along with an overall task.
+  let contextSoFar = '';
 
-Team: {{{teamName}}}
-Task: {{{task}}}
+  // 3. Execute each agent in sequence to contribute their expertise with client brand context
+  for (const agent of input.agents) {
+    const promptForAgent = contextSoFar
+      ? `Overall Team Goal: ${input.task}${brandContextPrompt}\n\nPrevious Agent Work:\n${contextSoFar}\n\nNow, perform your specific part based on your role (${agent.role}) and objectives (${agent.objectives}). Produce your output in Markdown.`
+      : `Overall Team Goal: ${input.task}${brandContextPrompt}\n\nPerform your specific part based on your role (${agent.role}) and objectives (${agent.objectives}). Produce your output in Markdown.`;
 
-Here are the agents in your team:
-{{#each agents}}
-- {{{this.name}}} ({{{this.role}}}): {{{this.objectives}}}
-{{/each}}
+    const response = await runAgent({
+      agent,
+      task: promptForAgent,
+    });
 
-Your process is as follows:
-1.  **Analyze and Plan**: Based on the team and the task, create a logical, step-by-step execution plan. For each step, determine which agent is best suited for the task.
-2.  **Execute**: Use the 'runAgent' tool to delegate each task to the appropriate agent. The output from one step can be used as context for the next. You may need to call agents multiple times.
-3.  **Synthesize**: After all steps are complete, review the outputs from the agents and compile them into a final, comprehensive result that fulfills the original task.
+    const outputText = cleanMarkdownResult(response.result || 'Completed');
+    contextSoFar += `### ${agent.name} (${agent.role})\n${outputText}\n\n`;
+  }
 
-Do not simulate the work. You must use the 'runAgent' tool to get results from the agents.
+  // 4. Synthesize the final comprehensive result from all agent contributions
+  const synthesizePromptText = `You are a master orchestrator synthesizing the final output of an AI agent team.
 
-Begin execution. Produce the final, synthesized result in Markdown format.
-`,
-  });
+Team: ${input.teamName}
+Overall Task: ${input.task}
+${brandContextPrompt ? `Client Brand Context:\n${brandContextPrompt}\n` : ''}
+Here are the individual contributions from each agent in the team:
+${contextSoFar}
 
-  const {output} = await runOrchestrationPrompt(input);
-  return output!;
+Synthesize these agent contributions into a single, cohesive, high-quality, professional final deliverable.
+Format your deliverable in clean, readable Markdown with clear headings, bullet points, and conclusions. Do NOT wrap in JSON. Return pure Markdown.`;
+
+  let finalMarkdown = '';
+
+  try {
+    const synthResponse = await ai.generate({
+      prompt: synthesizePromptText,
+    });
+
+    if (synthResponse.text) {
+      finalMarkdown = cleanMarkdownResult(synthResponse.text);
+    }
+  } catch (synthErr) {
+    console.warn('Direct synthesis fallback to compiled outputs:', synthErr);
+  }
+
+  if (!finalMarkdown) {
+    // Fallback: return formatted compiled agent contributions
+    finalMarkdown = cleanMarkdownResult(
+      `# ${input.teamName}: Final Orchestration Report\n\n**Task:** ${input.task}${clientProfile ? `\n\n**Client Brand:** ${clientProfile.name}` : ''}\n\n---\n\n${contextSoFar}`
+    );
+  }
+
+  // 5. Persist run to SQLite orchestrations table and update usage
+  try {
+    const orchestrationId = `orch-${Date.now()}`;
+    db.insert(orchestrations)
+      .values({
+        id: orchestrationId,
+        userId,
+        clientProfileId: clientProfile?.id || null,
+        clientName: clientProfile?.name || null,
+        teamName: input.teamName,
+        task: input.task,
+        result: finalMarkdown,
+        status: 'completed',
+        modelUsed: process.env.CLOUDFLARE_DEFAULT_MODEL || '@cf/meta/llama-3.2-3b-instruct',
+      })
+      .run();
+
+    // Increment usage quota
+    const sub = db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).get();
+    if (sub) {
+      db.update(subscriptions)
+        .set({ currentUsage: (sub.currentUsage || 0) + 1, updatedAt: new Date() })
+        .where(eq(subscriptions.userId, userId))
+        .run();
+    }
+  } catch (dbErr) {
+    console.warn('Failed to record orchestration in DB:', dbErr);
+  }
+
+  return {
+    result: finalMarkdown,
+    clientName: clientProfile?.name,
+  };
 }

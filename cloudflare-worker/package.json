@@ -1,0 +1,15 @@
+{
+  "name": "agentverse-ai-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers AI backend for AgentVerse",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240923.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^4.149.0"
+  }
+}
