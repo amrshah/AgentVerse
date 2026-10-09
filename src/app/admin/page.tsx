@@ -3,6 +3,7 @@ import SaaSAdminDashboard from "@/components/app/saas-admin-dashboard";
 import Header from "@/components/app/header";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export default async function AdminPage() {
   const stats = await getAdminDashboardStats();
