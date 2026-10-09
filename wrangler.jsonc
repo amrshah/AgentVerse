@@ -1,16 +1,35 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "agentverse",
-  "compatibility_date": "2024-09-23",
+  "account_id": "be941241fb3499e9567c7ec28528c984",
+  "workers_dev": true,
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "pages_build_output_dir": ".vercel/output/static",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "routes": [
+    {
+      "pattern": "ag-platform.bracemen.com",
+      "custom_domain": true
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "agentverse-db",
       "database_id": "7576cd77-72dc-4442-a5d3-7b9f2cff60c2"
     }
-  ]
+  ],
+  "vars": {
+    "AI_PROVIDER": "cloudflare",
+    "CLOUDFLARE_ACCOUNT_ID": "be941241fb3499e9567c7ec28528c984",
+    "CF_MODEL": "@cf/meta/llama-3.2-3b-instruct",
+    "NEXT_PUBLIC_APP_URL": "https://ag-platform.bracemen.com",
+    "BETTER_AUTH_SECRET": "agentverse-super-secret-key-32-chars-long-min"
+  }
 }

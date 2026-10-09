@@ -1,16 +1,7 @@
 'use server';
 
-/**
- * @fileOverview Tool description suggestion flow.
- *
- * This flow takes a user-provided description of a tool and suggests a JSON schema for it.
- * - suggestToolDescription - Function to generate a tool description suggestion.
- * - SuggestToolDescriptionInput - Input type for the suggestToolDescription function.
- * - SuggestToolDescriptionOutput - Output type for the suggestToolDescription function.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateText } from '@/ai/client';
+import { z } from 'zod';
 
 const SuggestToolDescriptionInputSchema = z.object({
   toolDescription: z
@@ -35,29 +26,13 @@ export type SuggestToolDescriptionOutput = z.infer<
 export async function suggestToolDescription(
   input: SuggestToolDescriptionInput
 ): Promise<SuggestToolDescriptionOutput> {
-  return suggestToolDescriptionFlow(input);
+  const prompt = `You are an expert at creating JSON schemas to describe tools for use by AI agents.
+Based on the following tool description, create a JSON schema that describes the input fields and parameters required for the tool.
+
+Tool Description: ${input.toolDescription}
+
+Return ONLY the JSON schema representation.`;
+
+  const jsonSchema = await generateText({ prompt });
+  return { jsonSchema };
 }
-
-const prompt = ai.definePrompt({
-  name: 'suggestToolDescriptionPrompt',
-  input: {schema: SuggestToolDescriptionInputSchema},
-  output: {schema: SuggestToolDescriptionOutputSchema},
-  prompt: `You are an expert at creating JSON schemas to describe tools for use by AI agents.
-
-  Based on the following tool description, create a JSON schema that describes the input fields and authorizations required for the tool.
-
-  Tool Description: {{{toolDescription}}}
-  `,
-});
-
-const suggestToolDescriptionFlow = ai.defineFlow(
-  {
-    name: 'suggestToolDescriptionFlow',
-    inputSchema: SuggestToolDescriptionInputSchema,
-    outputSchema: SuggestToolDescriptionOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);

@@ -1,0 +1,119 @@
+2026-10-09T15:37:58.576577Z	Cloning repository...
+2026-10-09T15:37:59.538083Z	From https://github.com/amrshah/AgentVerse
+2026-10-09T15:37:59.538383Z	 * branch            0b26d08bc5fcfb93b369486be34a8ca979db50d6 -> FETCH_HEAD
+2026-10-09T15:37:59.538458Z	
+2026-10-09T15:37:59.569248Z	HEAD is now at 0b26d08 fix(db): clean edge-compatible D1 proxy adapter without C++ native addon overhead
+2026-10-09T15:37:59.56959Z	
+2026-10-09T15:37:59.64829Z	
+2026-10-09T15:37:59.648859Z	Using v2 root directory strategy
+2026-10-09T15:37:59.660436Z	Success: Finished cloning repository files
+2026-10-09T15:38:01.055092Z	Restoring from dependencies cache
+2026-10-09T15:38:01.077023Z	Restoring from build output cache
+2026-10-09T15:38:02.187947Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-10-09T15:38:02.188578Z	
+2026-10-09T15:38:02.189313Z	Found wrangler.json file. Reading build configuration...
+2026-10-09T15:38:02.196557Z	pages_build_output_dir: .vercel/output/static
+2026-10-09T15:38:02.19735Z	Build environment variables: (none found)
+2026-10-09T15:38:02.357944Z	Successfully read the Wrangler configuration file.
+2026-10-09T15:38:02.596165Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2026-10-09T15:38:02.596618Z	Installing project dependencies: npm clean-install --progress=false
+2026-10-09T15:38:07.605887Z	npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+2026-10-09T15:38:08.500376Z	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-10-09T15:38:12.313668Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.hirok.io
+2026-10-09T15:38:12.420448Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.hirok.io
+2026-10-09T15:38:12.855878Z	npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2026-10-09T15:38:14.599548Z	npm warn deprecated @cloudflare/next-on-pages@1.13.16: Please use the OpenNext adapter instead: https://opennext.js.org/cloudflare
+2026-10-09T15:38:39.479337Z	
+2026-10-09T15:38:39.479865Z	added 1090 packages, and audited 1091 packages in 36s
+2026-10-09T15:38:39.480004Z	
+2026-10-09T15:38:39.480077Z	211 packages are looking for funding
+2026-10-09T15:38:39.480146Z	  run `npm fund` for details
+2026-10-09T15:38:39.808775Z	
+2026-10-09T15:38:39.809101Z	124 vulnerabilities (2 low, 74 moderate, 43 high, 5 critical)
+2026-10-09T15:38:39.809224Z	
+2026-10-09T15:38:39.809307Z	To address issues that do not require attention, run:
+2026-10-09T15:38:39.809387Z	  npm audit fix
+2026-10-09T15:38:39.809446Z	
+2026-10-09T15:38:39.809512Z	To address all issues possible (including breaking changes), run:
+2026-10-09T15:38:39.809544Z	  npm audit fix --force
+2026-10-09T15:38:39.809572Z	
+2026-10-09T15:38:39.809599Z	Some issues need review, and may require choosing
+2026-10-09T15:38:39.809627Z	a different dependency.
+2026-10-09T15:38:39.809654Z	
+2026-10-09T15:38:39.809688Z	Run `npm audit` for details.
+2026-10-09T15:38:39.896344Z	Executing user command: npx @cloudflare/next-on-pages
+2026-10-09T15:38:40.592251Z	⚡️ @cloudflare/next-on-pages CLI v.1.13.16
+2026-10-09T15:38:40.72969Z	⚡️ Detected Package Manager: npm (10.9.2)
+2026-10-09T15:38:40.729903Z	⚡️ Preparing project...
+2026-10-09T15:38:40.73273Z	⚡️ Project is ready
+2026-10-09T15:38:40.732925Z	⚡️ Building project...
+2026-10-09T15:38:41.542586Z	▲  npm warn exec The following package was not found and will be installed: vercel@63.1.0
+2026-10-09T15:38:57.362551Z	▲  Vercel CLI 63.1.0 (Node.js 22.16.0)
+2026-10-09T15:38:57.375635Z	▲  > NOTE: The Vercel CLI now collects telemetry regarding usage of the CLI.
+2026-10-09T15:38:57.375833Z	▲  > This information is used to shape the CLI roadmap and prioritize features.
+2026-10-09T15:38:57.375909Z	▲  > You can learn more, including how to opt-out if you'd not like to participate in this program, by visiting the following URL:
+2026-10-09T15:38:57.375996Z	▲  > https://vercel.com/docs/cli/about-telemetry
+2026-10-09T15:38:57.794418Z	▲  WARNING! Build not running on Vercel. System environment variables will not be available.
+2026-10-09T15:38:57.937226Z	▲  Installing dependencies...
+2026-10-09T15:38:59.120223Z	▲  up to date in 1s
+2026-10-09T15:38:59.120926Z	▲  211 packages are looking for funding
+2026-10-09T15:38:59.121057Z	▲  run `npm fund` for details
+2026-10-09T15:38:59.131712Z	▲  Detected Next.js version: 15.3.3
+2026-10-09T15:38:59.138384Z	▲  Running "npm run build"
+2026-10-09T15:38:59.288558Z	▲  > AgentVerse@0.1.0 build
+2026-10-09T15:38:59.288882Z	▲  > next build
+2026-10-09T15:38:59.944815Z	▲  Attention: Next.js now collects completely anonymous telemetry regarding usage.
+2026-10-09T15:38:59.945079Z	▲  This information is used to shape Next.js' roadmap and prioritize features.
+2026-10-09T15:38:59.94517Z	▲  You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+2026-10-09T15:38:59.945291Z	▲  https://nextjs.org/telemetry
+2026-10-09T15:39:00.039178Z	▲  ▲ Next.js 15.3.3
+2026-10-09T15:39:00.03993Z	▲  
+2026-10-09T15:39:00.062148Z	▲  Creating an optimized production build ...
+2026-10-09T15:39:29.821481Z	▲  ✓ Compiled successfully in 25.0s
+2026-10-09T15:39:29.825541Z	▲  Skipping validation of types
+2026-10-09T15:39:29.825734Z	▲  Skipping linting
+2026-10-09T15:39:30.114625Z	▲  Collecting page data ...
+2026-10-09T15:39:34.461335Z	▲  Generating static pages (0/9) ...
+2026-10-09T15:39:35.393979Z	▲  Generating static pages (2/9) 
+2026-10-09T15:39:35.394278Z	▲  Generating static pages (4/9)
+2026-10-09T15:39:35.394423Z	▲  Generating static pages (6/9) 
+2026-10-09T15:39:35.394513Z	▲  ✓ Generating static pages (9/9)
+2026-10-09T15:39:35.665559Z	▲  Finalizing page optimization ...
+2026-10-09T15:39:35.665832Z	▲  Collecting build traces ...
+2026-10-09T15:39:42.406461Z	▲  
+2026-10-09T15:39:42.409035Z	▲  Route (app)                                 Size  First Load JS
+2026-10-09T15:39:42.409173Z	▲  ┌ ○ /                                    10.3 kB         506 kB
+2026-10-09T15:39:42.40923Z	▲  ├ ○ /_not-found                            986 B         102 kB
+2026-10-09T15:39:42.40928Z	▲  ├ ƒ /admin                               6.21 kB         183 kB
+2026-10-09T15:39:42.409317Z	▲  ├ ○ /agents                              1.37 kB         506 kB
+2026-10-09T15:39:42.409348Z	▲  ├ ƒ /api/auth/[...all]                     137 B         101 kB
+2026-10-09T15:39:42.409415Z	▲  ├ ○ /bot-builder                         1.27 kB         490 kB
+2026-10-09T15:39:42.409452Z	▲  ├ ○ /clients                             3.86 kB         181 kB
+2026-10-09T15:39:42.409482Z	▲  └ ○ /workflows                             843 B         178 kB
+2026-10-09T15:39:42.40952Z	▲  + First Load JS shared by all             101 kB
+2026-10-09T15:39:42.409582Z	▲  ├ chunks/4bd1b696-cecbab546862f3b2.js  53.2 kB
+2026-10-09T15:39:42.409647Z	▲  ├ chunks/684-1a7c11c2199edc86.js       45.8 kB
+2026-10-09T15:39:42.40971Z	▲  └ other shared chunks (total)          1.93 kB
+2026-10-09T15:39:42.409783Z	▲  ○  (Static)   prerendered as static content
+2026-10-09T15:39:42.40982Z	▲  ƒ  (Dynamic)  server-rendered on demand
+2026-10-09T15:39:42.616591Z	▲  Traced Next.js server files in: 96.644ms
+2026-10-09T15:39:42.94826Z	▲  Created all serverless functions in: 331.061ms
+2026-10-09T15:39:42.956164Z	▲  Collected static files (public/, static/, .next/static): 3.652ms
+2026-10-09T15:39:43.008296Z	▲  Build Completed in .vercel/output [45s]
+2026-10-09T15:39:43.081984Z	⚡️ Completed `npx vercel build`.
+2026-10-09T15:39:43.891269Z	
+2026-10-09T15:39:43.891569Z	⚡️ ERROR: Failed to produce a Cloudflare Pages build from the project.
+2026-10-09T15:39:43.891984Z	⚡️ 
+2026-10-09T15:39:43.892059Z	⚡️ 	The following routes were not configured to run with the Edge Runtime:
+2026-10-09T15:39:43.892135Z	⚡️ 	  - /admin
+2026-10-09T15:39:43.892176Z	⚡️ 	  - /api/auth/[...all]
+2026-10-09T15:39:43.892218Z	⚡️ 
+2026-10-09T15:39:43.892253Z	⚡️ 	Please make sure that all your non-static routes export the following edge runtime route segment config:
+2026-10-09T15:39:43.892291Z	⚡️ 	  export const runtime = 'edge';
+2026-10-09T15:39:43.894735Z	⚡️ 
+2026-10-09T15:39:43.894978Z	⚡️ 	You can read more about the Edge Runtime on the Next.js documentation:
+2026-10-09T15:39:43.895068Z	⚡️ 	  https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
+2026-10-09T15:39:43.895137Z	
+2026-10-09T15:39:43.91568Z	Failed: Error while executing user command. Exited with error code: 1
+2026-10-09T15:39:43.923538Z	Failed: build command exited with code: 1
+2026-10-09T15:39:45.37036Z	Failed: error occurred while running build command

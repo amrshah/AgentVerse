@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { runAgent } from '@/ai/flows/run-agent-flow';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { db } from '@/db';
 import { clientProfiles, orchestrations, subscriptions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
